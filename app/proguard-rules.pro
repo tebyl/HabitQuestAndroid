@@ -1,0 +1,4 @@
+-keep class com.habitquest.data.local.entity.** { *; }
+-keep class com.habitquest.domain.model.** { *; }
+-keepattributes *Annotation*
+-dontwarn kotlinx.coroutines.**
