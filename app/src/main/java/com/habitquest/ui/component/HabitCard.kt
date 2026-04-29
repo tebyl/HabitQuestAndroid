@@ -43,6 +43,7 @@ fun HabitCard(
 
     val scope = rememberCoroutineScope()
     var showXP by remember { mutableStateOf(false) }
+    var pulseTarget by remember { mutableStateOf(false) }
 
     val xpAlpha by animateFloatAsState(
         targetValue = if (showXP) 1f else 0f,
@@ -55,10 +56,18 @@ fun HabitCard(
         label = "xpOffset"
     )
     val scale by animateFloatAsState(
-        targetValue = if (habit.completedToday) 1.02f else 1f,
+        targetValue = if (pulseTarget) 1.15f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "cardScale"
     )
+
+    LaunchedEffect(habit.completedToday) {
+        if (habit.completedToday) {
+            pulseTarget = true
+            delay(120)
+            pulseTarget = false
+        }
+    }
 
     Box(
         modifier = modifier

@@ -23,7 +23,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
@@ -33,7 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.habitquest.ui.component.LevelRoadmap
+import com.habitquest.ui.component.EmptyStateCard
 import com.habitquest.ui.theme.*
 
 @Composable
@@ -46,9 +45,7 @@ fun ProfileScreen(
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
-    ) { granted ->
-        viewModel.setNotificationsEnabled(granted)
-    }
+    ) { granted -> viewModel.setNotificationsEnabled(granted) }
 
     val notificationsGranted = remember(state.notificationsEnabled) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -58,31 +55,44 @@ fun ProfileScreen(
         } else true
     }
 
-    LaunchedEffect(Unit) {
-        viewModel.setNotificationsEnabled(notificationsGranted)
-    }
+    LaunchedEffect(Unit) { viewModel.setNotificationsEnabled(notificationsGranted) }
 
+    // Dialogs (unchanged)
     if (state.isEditingName) {
         EditNameDialog(
-            draft = state.editNameDraft,
+            draft        = state.editNameDraft,
             onDraftChange = viewModel::updateNameDraft,
-            onConfirm = viewModel::confirmEditName,
-            onDismiss = viewModel::cancelEditName
+            onConfirm    = viewModel::confirmEditName,
+            onDismiss    = viewModel::cancelEditName
         )
     }
-
     if (state.showAvatarPicker) {
         AvatarPickerDialog(
             currentAvatar = state.userAvatar,
-            onSelect = viewModel::selectAvatar,
-            onDismiss = viewModel::dismissAvatarPicker
+            onSelect      = viewModel::selectAvatar,
+            onDismiss     = viewModel::dismissAvatarPicker
         )
     }
 
+    if (state.isLoading) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Background),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Amber)
+        }
+        return
+    }
+
     LazyColumn(
-        modifier = Modifier.fillMaxSize().background(Background),
-        contentPadding = PaddingValues(bottom = 20.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Background),
+        contentPadding = PaddingValues(bottom = 24.dp)
     ) {
+        // ── Page header ───────────────────────────────────────────
         item {
             Column(
                 modifier = Modifier
@@ -96,100 +106,107 @@ fun ProfileScreen(
                     letterSpacing = 1.5.sp
                 )
                 Text(
-                    text = state.userName,
+                    text = "Héroe",
                     style = AppTypography.headlineLarge,
                     color = TextPrimary
                 )
             }
         }
 
+        // ── Hero card ─────────────────────────────────────────────
         item {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
-            ) {
-                // Avatar with edit overlay
-                Box(contentAlignment = Alignment.BottomEnd) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(90.dp)
-                            .clip(CircleShape)
-                            .background(Brush.linearGradient(listOf(Amber, Red)))
-                            .clickable { viewModel.openAvatarPicker() }
-                    ) {
-                        Text(state.userAvatar, fontSize = 40.sp)
-                    }
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier
-                            .size(26.dp)
-                            .clip(CircleShape)
-                            .background(CardBackground)
-                            .border(1.dp, Divider, CircleShape)
-                            .clickable { viewModel.openAvatarPicker() }
-                    ) {
-                        Text("✏️", fontSize = 12.sp)
-                    }
-                }
-
-                Spacer(Modifier.height(12.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(
-                        text = state.userName,
-                        style = AppTypography.headlineMedium,
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = "✏️",
-                        fontSize = 14.sp,
-                        modifier = Modifier.clickable { viewModel.startEditingName() }
-                    )
-                }
-
-                Spacer(Modifier.height(6.dp))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(state.currentLevel.color.copy(alpha = 0.13f))
-                        .border(
-                            1.dp,
-                            state.currentLevel.color.copy(alpha = 0.27f),
-                            RoundedCornerShape(20.dp)
-                        )
-                        .padding(horizontal = 12.dp, vertical = 4.dp)
-                ) {
-                    Text(
-                        text = state.currentLevel.name,
-                        style = AppTypography.labelLarge,
-                        color = state.currentLevel.color,
-                        fontSize = 12.sp
-                    )
-                    Text(
-                        text = "LVL ${state.currentLevel.level}",
-                        style = AppTypography.labelSmall,
-                        color = TextDim,
-                        fontSize = 10.sp
-                    )
-                }
-            }
+            ProfileHeaderCard(
+                avatar      = state.userAvatar,
+                name        = state.userName,
+                currentLevel = state.currentLevel,
+                rank        = state.rank,
+                onEditName  = viewModel::startEditingName,
+                onEditAvatar = viewModel::openAvatarPicker,
+                modifier    = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(Modifier.height(14.dp))
         }
 
+        // ── XP progress ───────────────────────────────────────────
         item {
-            LevelRoadmap(
-                currentLevel = state.currentLevel,
+            XpProgressCard(
+                currentLevel      = state.currentLevel,
+                xpInCurrentLevel  = state.xpInCurrentLevel,
+                xpToNextLevel     = state.xpToNextLevel,
+                totalXP           = state.totalXP,
+                modifier          = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(Modifier.height(14.dp))
+        }
+
+        // ── Stat summary row ──────────────────────────────────────
+        item {
+            StatSummaryRow(
+                totalXP         = state.totalXP,
+                currentLevelNum = state.currentLevel.level,
+                maxStreak       = state.maxStreak,
+                habitsCompleted = state.habits.count { it.streakCount > 0 },
+                modifier        = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(Modifier.height(14.dp))
+        }
+
+        // ── Rank progression ──────────────────────────────────────
+        item {
+            RankCard(
+                currentRank = state.rank,
+                modifier    = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(Modifier.height(14.dp))
+        }
+
+        // ── Achievements ──────────────────────────────────────────
+        item {
+            Text(
+                text = "LOGROS",
+                style = AppTypography.labelSmall,
+                color = TextMuted,
+                letterSpacing = 1.sp,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(10.dp))
         }
 
+        if (state.achievements.isEmpty()) {
+            item {
+                EmptyStateCard(
+                    icon     = "🏅",
+                    title    = "Sin logros aún",
+                    subtitle = "Completa hábitos para desbloquearlos",
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                Spacer(Modifier.height(14.dp))
+            }
+        } else {
+            // Achievement badges in pairs
+            state.achievements.chunked(2).forEach { row ->
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 20.dp),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        row.forEach { achievement ->
+                            AchievementBadgeCard(
+                                achievement = achievement,
+                                modifier    = Modifier.weight(1f)
+                            )
+                        }
+                        if (row.size == 1) Spacer(Modifier.weight(1f))
+                    }
+                    Spacer(Modifier.height(10.dp))
+                }
+            }
+            item { Spacer(Modifier.height(4.dp)) }
+        }
+
+        // ── Settings ─────────────────────────────────────────────
         item {
             Column(
                 modifier = Modifier
@@ -199,104 +216,33 @@ fun ProfileScreen(
                     .background(CardBackground)
                     .border(1.dp, com.habitquest.ui.theme.Divider, RoundedCornerShape(16.dp))
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                            }
+                SettingsRow(
+                    icon  = "🔔",
+                    label = "Notificaciones",
+                    trailing = if (state.notificationsEnabled) "Activas" else "Inactivas",
+                    trailingColor = if (state.notificationsEnabled) Emerald else TextDim,
+                    onClick = {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         }
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("🔔", fontSize = 18.sp)
-                    Text(
-                        text = "Notificaciones",
-                        style = AppTypography.bodyLarge,
-                        color = TextSecondary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = if (state.notificationsEnabled) "Activas" else "Inactivas",
-                        style = AppTypography.labelSmall,
-                        color = if (state.notificationsEnabled) Emerald else TextDim
-                    )
-                    Text(text = "›", color = DividerLight, fontSize = 16.sp)
-                }
-
-                HorizontalDivider(color = Divider, thickness = 1.dp)
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { themeController.setDarkTheme(!themeController.isDarkTheme) }
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text(
-                        text = if (themeController.isDarkTheme) "🌙" else "☀️",
-                        fontSize = 18.sp
-                    )
-                    Text(
-                        text = "Tema",
-                        style = AppTypography.bodyLarge,
-                        color = TextSecondary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = if (themeController.isDarkTheme) "Dark" else "Light",
-                        style = AppTypography.labelSmall,
-                        color = TextDim
-                    )
-                    Text(text = "›", color = DividerLight, fontSize = 16.sp)
-                }
-
-                HorizontalDivider(color = Divider, thickness = 1.dp)
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { }
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("🗂️", fontSize = 18.sp)
-                    Text(
-                        text = "Categorías",
-                        style = AppTypography.bodyLarge,
-                        color = TextSecondary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(text = "›", color = DividerLight, fontSize = 16.sp)
-                }
-
-                HorizontalDivider(color = Divider, thickness = 1.dp)
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { }
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    Text("📤", fontSize = 18.sp)
-                    Text(
-                        text = "Exportar datos",
-                        style = AppTypography.bodyLarge,
-                        color = TextSecondary,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(text = "›", color = DividerLight, fontSize = 16.sp)
-                }
+                    }
+                )
+                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
+                SettingsRow(
+                    icon  = if (themeController.isDarkTheme) "🌙" else "☀️",
+                    label = "Tema",
+                    trailing = if (themeController.isDarkTheme) "Dark" else "Light",
+                    onClick = { themeController.setDarkTheme(!themeController.isDarkTheme) }
+                )
+                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
+                SettingsRow(icon = "🗂️", label = "Categorías",   onClick = {})
+                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
+                SettingsRow(icon = "📤", label = "Exportar datos", onClick = {})
             }
             Spacer(Modifier.height(20.dp))
         }
 
+        // ── Footer ────────────────────────────────────────────────
         item {
             Text(
                 text = "Hecho con Amor por Esteban R",
@@ -308,6 +254,40 @@ fun ProfileScreen(
                     .padding(horizontal = 20.dp, vertical = 8.dp)
             )
         }
+    }
+}
+
+@Composable
+private fun SettingsRow(
+    icon: String,
+    label: String,
+    trailing: String = "",
+    trailingColor: androidx.compose.ui.graphics.Color = TextDim,
+    onClick: () -> Unit
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 14.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text(icon, fontSize = 18.sp)
+        Text(
+            text = label,
+            style = AppTypography.bodyLarge,
+            color = TextSecondary,
+            modifier = Modifier.weight(1f)
+        )
+        if (trailing.isNotEmpty()) {
+            Text(
+                text = trailing,
+                style = AppTypography.labelSmall,
+                color = trailingColor
+            )
+        }
+        Text(text = "›", color = DividerLight, fontSize = 16.sp)
     }
 }
 
@@ -346,7 +326,7 @@ private fun AvatarPickerDialog(
                             )
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) Amber else Divider,
+                                color = if (isSelected) Amber else com.habitquest.ui.theme.Divider,
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .clickable { onSelect(option.emoji) }
@@ -401,11 +381,11 @@ private fun EditNameDialog(
                     .fillMaxWidth()
                     .focusRequester(focusRequester),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Amber,
-                    unfocusedBorderColor = Divider,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextSecondary,
-                    cursorColor = Amber
+                    focusedBorderColor   = Amber,
+                    unfocusedBorderColor = com.habitquest.ui.theme.Divider,
+                    focusedTextColor     = TextPrimary,
+                    unfocusedTextColor   = TextSecondary,
+                    cursorColor          = Amber
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { onConfirm() })
@@ -423,7 +403,5 @@ private fun EditNameDialog(
         }
     )
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-    }
+    LaunchedEffect(Unit) { focusRequester.requestFocus() }
 }

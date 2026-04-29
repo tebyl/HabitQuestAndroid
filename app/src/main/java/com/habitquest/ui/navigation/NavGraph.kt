@@ -8,12 +8,18 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -24,19 +30,19 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.habitquest.ui.screen.home.HomeScreen
 import com.habitquest.ui.screen.profile.ProfileScreen
-import com.habitquest.ui.screen.progress.ProgressScreen
+import com.habitquest.ui.screen.statistics.StatisticsScreen
 import com.habitquest.ui.theme.*
 
 data class NavItem(
     val screen: Screen,
     val label: String,
-    val icon: String
+    val icon: ImageVector
 )
 
 private val navItems = listOf(
-    NavItem(Screen.Home, "Hoy", "🏠"),
-    NavItem(Screen.Progress, "Stats", "📊"),
-    NavItem(Screen.Profile, "Perfil", "🤖"),
+    NavItem(Screen.Home, "Hoy", Icons.Filled.Home),
+    NavItem(Screen.Progress, "Stats", Icons.Filled.BarChart),
+    NavItem(Screen.Profile, "Perfil", Icons.Filled.Person),
 )
 
 @Composable
@@ -56,7 +62,7 @@ fun NavGraph() {
             modifier = Modifier.weight(1f)
         ) {
             composable(Screen.Home.route) { HomeScreen() }
-            composable(Screen.Progress.route) { ProgressScreen() }
+            composable(Screen.Progress.route) { StatisticsScreen() }
             composable(Screen.Profile.route) { ProfileScreen() }
         }
 
@@ -99,9 +105,11 @@ fun NavGraph() {
                             }
                             .padding(horizontal = 20.dp, vertical = 8.dp)
                     ) {
-                        Text(
-                            text = item.icon,
-                            fontSize = 20.sp
+                        Icon(
+                            imageVector = item.icon,
+                            contentDescription = item.label,
+                            tint = if (isSelected) Amber else TextDimmer,
+                            modifier = Modifier.size(22.dp)
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(

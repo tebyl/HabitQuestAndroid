@@ -5,6 +5,7 @@ data class Habit(
     val name: String,
     val icon: String,
     val category: String,
+    val frequency: String = "daily",
     val streakCount: Int = 0,
     val totalDays: Int = 0,
     val completedToday: Boolean = false,

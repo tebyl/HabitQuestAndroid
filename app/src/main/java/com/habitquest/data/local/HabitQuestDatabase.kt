@@ -11,7 +11,7 @@ import com.habitquest.data.local.entity.UserStatsEntity
 
 @Database(
     entities = [HabitEntity::class, UserStatsEntity::class, TaskEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class HabitQuestDatabase : RoomDatabase() {

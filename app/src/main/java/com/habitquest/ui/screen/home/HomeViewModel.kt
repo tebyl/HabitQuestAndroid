@@ -32,6 +32,8 @@ class HomeViewModel @Inject constructor(
         val currentLevel: Level = Levels.all.first(),
         val xpToNext: Int = 200,
         val xpInCurrentLevel: Int = 0,
+        val userAvatar: String = "🦸",
+        val userName: String = "Héroe",
         val toast: ToastState? = null,
         val showQuickAdd: Boolean = false,
         val isLoading: Boolean = true
@@ -59,6 +61,8 @@ class HomeViewModel @Inject constructor(
                             currentLevel     = level,
                             xpToNext         = Levels.getXPToNext(stats.totalXP),
                             xpInCurrentLevel = Levels.getXPInCurrentLevel(stats.totalXP),
+                            userAvatar       = stats.userAvatar,
+                            userName         = stats.userName,
                             isLoading        = false
                         )
                     }
@@ -143,12 +147,12 @@ class HomeViewModel @Inject constructor(
     fun showQuickAdd() = _uiState.update { it.copy(showQuickAdd = true) }
     fun hideQuickAdd() = _uiState.update { it.copy(showQuickAdd = false) }
 
-    fun createHabit(name: String, icon: String, category: String) {
+    fun createHabit(name: String, icon: String, category: String, frequency: String = "daily") {
         if (name.isBlank()) return
         viewModelScope.launch {
             repository.addHabit(
                 com.habitquest.domain.model.Habit(
-                    name = name.trim(), icon = icon, category = category
+                    name = name.trim(), icon = icon, category = category, frequency = frequency
                 )
             )
             _uiState.update { it.copy(showQuickAdd = false) }

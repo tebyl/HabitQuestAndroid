@@ -2,6 +2,8 @@ package com.habitquest.ui.screen.home
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -14,7 +16,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.habitquest.data.repository.HabitRepositoryImpl
+import com.habitquest.domain.model.Levels
 import com.habitquest.ui.component.*
 import com.habitquest.ui.theme.*
 import java.time.LocalDate
@@ -83,19 +90,42 @@ fun HomeScreen(
                     }
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(Color(0x1AF59E0B))
-                            .border(1.dp, Color(0x4DF59E0B), RoundedCornerShape(20.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Text("⚡", fontSize = 14.sp)
-                        Text(
-                            text = "${state.totalXP}",
-                            style = AppTypography.labelLarge,
-                            color = Amber
-                        )
+                        // Level badge
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
+                                .background(state.currentLevel.color.copy(alpha = 0.13f))
+                                .border(
+                                    1.dp,
+                                    state.currentLevel.color.copy(alpha = 0.3f),
+                                    RoundedCornerShape(20.dp)
+                                )
+                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = "LVL ${state.currentLevel.level}",
+                                style = AppTypography.labelSmall,
+                                color = state.currentLevel.color,
+                                fontSize = 10.sp
+                            )
+                        }
+                        // Avatar circle
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(listOf(Amber.copy(alpha = 0.7f), Red.copy(alpha = 0.7f)))
+                                )
+                                .border(2.dp, Amber.copy(alpha = 0.5f), CircleShape)
+                        ) {
+                            Text(state.userAvatar, fontSize = 18.sp)
+                        }
                     }
                 }
             }
@@ -137,7 +167,7 @@ fun HomeScreen(
                             level     = state.currentLevel.level
                         )
                         Spacer(Modifier.height(6.dp))
-                        val nextLevel = com.habitquest.domain.model.Levels.all
+                        val nextLevel = Levels.all
                             .find { it.level == state.currentLevel.level + 1 }
                         Text(
                             text = "${state.currentLevel.name}${nextLevel?.let { " → ${it.name}" } ?: ""}",
@@ -154,6 +184,17 @@ fun HomeScreen(
                 WeekCalendar(
                     completedDates = completedDates,
                     modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
+            // ── Daily mission card ─────────────────────────────────
+            item {
+                val completedCount = state.habits.count { it.completedToday }
+                DailyMissionCard(
+                    completedHabits = completedCount,
+                    totalHabits     = state.habits.size,
+                    modifier        = Modifier.padding(horizontal = 20.dp)
                 )
                 Spacer(Modifier.height(16.dp))
             }
@@ -209,10 +250,10 @@ fun HomeScreen(
 
             if (state.habits.isEmpty()) {
                 item {
-                    Text(
-                        text = "Sin hábitos · toca + para agregar",
-                        style = AppTypography.bodyMedium,
-                        color = TextDim,
+                    EmptyStateCard(
+                        icon     = "🌱",
+                        title    = "Sin hábitos aún",
+                        subtitle = "Toca + para agregar tu primer hábito",
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                     Spacer(Modifier.height(16.dp))
@@ -222,13 +263,20 @@ fun HomeScreen(
                     val xpGain = HabitRepositoryImpl.xpForCategory(habit.category) +
                         if (habit.streakCount >= HabitRepositoryImpl.STREAK_BONUS_THRESHOLD)
                             HabitRepositoryImpl.STREAK_BONUS else 0
-                    HabitCard(
-                        habit        = habit,
-                        xpGain       = xpGain,
-                        onComplete   = viewModel::completeHabit,
-                        onUncomplete = viewModel::uncompleteHabit,
-                        modifier     = Modifier.padding(horizontal = 20.dp)
-                    )
+                    var visible by remember(habit.id) { mutableStateOf(false) }
+                    LaunchedEffect(habit.id) { visible = true }
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(tween(220)) + expandVertically(tween(220))
+                    ) {
+                        HabitCard(
+                            habit        = habit,
+                            xpGain       = xpGain,
+                            onComplete   = viewModel::completeHabit,
+                            onUncomplete = viewModel::uncompleteHabit,
+                            modifier     = Modifier.padding(horizontal = 20.dp)
+                        )
+                    }
                     Spacer(Modifier.height(10.dp))
                 }
             }
@@ -263,22 +311,29 @@ fun HomeScreen(
 
             if (state.tasks.isEmpty()) {
                 item {
-                    Text(
-                        text = "Sin tareas · toca + para agregar",
-                        style = AppTypography.bodyMedium,
-                        color = TextDim,
+                    EmptyStateCard(
+                        icon     = "📋",
+                        title    = "Sin tareas aún",
+                        subtitle = "Toca + para agregar tu primera tarea",
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                     Spacer(Modifier.height(16.dp))
                 }
             } else {
                 items(pendingTasks, key = { "task_${it.id}" }) { task ->
-                    TaskCard(
-                        task         = task,
-                        onComplete   = viewModel::completeTask,
-                        onUncomplete = viewModel::uncompleteTask,
-                        modifier     = Modifier.padding(horizontal = 20.dp)
-                    )
+                    var visible by remember(task.id) { mutableStateOf(false) }
+                    LaunchedEffect(task.id) { visible = true }
+                    AnimatedVisibility(
+                        visible = visible,
+                        enter = fadeIn(tween(220)) + expandVertically(tween(220))
+                    ) {
+                        TaskCard(
+                            task         = task,
+                            onComplete   = viewModel::completeTask,
+                            onUncomplete = viewModel::uncompleteTask,
+                            modifier     = Modifier.padding(horizontal = 20.dp)
+                        )
+                    }
                     Spacer(Modifier.height(8.dp))
                 }
                 items(completedTasks, key = { "done_${it.id}" }) { task ->
@@ -350,7 +405,7 @@ fun HomeScreen(
 
     // Quick-add bottom sheet
     if (state.showQuickAdd) {
-        QuickAddSheet(
+        HabitCreateSheet(
             onDismiss  = viewModel::hideQuickAdd,
             onAddHabit = viewModel::createHabit,
             onAddTask  = viewModel::createTask

@@ -161,6 +161,7 @@ class HabitRepositoryImpl @Inject constructor(
 
     private fun HabitEntity.toDomain() = Habit(
         id = id, name = name, icon = icon, category = category,
+        frequency = frequency,
         streakCount = streakCount, totalDays = totalDays,
         completedToday = completedToday, lastCompletedDate = lastCompletedDate,
         reminderEnabled = reminderEnabled, reminderHour = reminderHour,
@@ -169,6 +170,7 @@ class HabitRepositoryImpl @Inject constructor(
 
     private fun Habit.toEntity() = HabitEntity(
         id = id, name = name, icon = icon, category = category,
+        frequency = frequency,
         streakCount = streakCount, totalDays = totalDays,
         completedToday = completedToday, lastCompletedDate = lastCompletedDate,
         reminderEnabled = reminderEnabled, reminderHour = reminderHour,
