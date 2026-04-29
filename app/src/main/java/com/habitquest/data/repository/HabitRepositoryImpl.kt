@@ -9,6 +9,7 @@ import com.habitquest.data.local.entity.UserStatsEntity
 import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Task
 import com.habitquest.domain.model.UserStats
+import com.habitquest.domain.model.XpRules
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -97,7 +98,7 @@ class HabitRepositoryImpl @Inject constructor(
                 lastCompletedDate = newLastDate
             )
         )
-        userStatsDao.addXP(-xpToSubtract)
+        subtractXP(xpToSubtract)
     }
 
     override suspend fun resetDailyHabitsIfNeeded() {
@@ -150,7 +151,7 @@ class HabitRepositoryImpl @Inject constructor(
         val task = taskDao.getTaskById(taskId) ?: return
         if (!task.isCompleted) return
         taskDao.setCompleted(taskId, false)
-        userStatsDao.addXP(-XP_PER_TASK)
+        subtractXP(XP_PER_TASK)
     }
 
     override suspend fun deleteTask(taskId: Long) {
@@ -190,4 +191,11 @@ class HabitRepositoryImpl @Inject constructor(
     private fun UserStatsEntity.toDomain() = UserStats(
         totalXP = totalXP, userName = userName, userAvatar = userAvatar
     )
+
+    private suspend fun subtractXP(amount: Int) {
+        val stats = userStatsDao.getUserStatsOnce() ?: return
+        userStatsDao.insertOrUpdate(
+            stats.copy(totalXP = XpRules.applyDelta(stats.totalXP, -amount))
+        )
+    }
 }

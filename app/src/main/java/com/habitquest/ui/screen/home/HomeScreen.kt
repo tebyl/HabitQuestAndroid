@@ -199,6 +199,18 @@ fun HomeScreen(
                 Spacer(Modifier.height(16.dp))
             }
 
+            // Daily streak reward
+            item {
+                val currentStreak = state.habits.maxOfOrNull { it.streakCount } ?: 0
+                val bestStreak = state.habits.maxOfOrNull { it.streakCount } ?: 0
+                StreakRewardCard(
+                    currentStreakDays = currentStreak,
+                    bestStreakDays = bestStreak,
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+                Spacer(Modifier.height(16.dp))
+            }
+
             // ── Streak at-risk alert ───────────────────────────────
             if (habitsAtRisk.isNotEmpty()) {
                 item {

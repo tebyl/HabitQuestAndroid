@@ -32,7 +32,9 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.habitquest.domain.gamification.resolvePetState
 import com.habitquest.ui.component.EmptyStateCard
+import com.habitquest.ui.component.EvolutionPetCard
 import com.habitquest.ui.theme.*
 
 @Composable
@@ -123,6 +125,21 @@ fun ProfileScreen(
                 onEditName  = viewModel::startEditingName,
                 onEditAvatar = viewModel::openAvatarPicker,
                 modifier    = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(Modifier.height(14.dp))
+        }
+
+        item {
+            val petState = resolvePetState(
+                totalXP = state.totalXP,
+                level = state.currentLevel.level,
+                streak = state.maxStreak,
+                habitsCompleted = state.habits.sumOf { it.totalDays },
+                tasksCompleted = state.tasksCompleted
+            )
+            EvolutionPetCard(
+                petState = petState,
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
             Spacer(Modifier.height(14.dp))
         }

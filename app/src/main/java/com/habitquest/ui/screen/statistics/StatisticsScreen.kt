@@ -200,7 +200,7 @@ private fun SectionCard(
 }
 
 @Composable
-private fun StreakRow(streak: StatisticsViewModel.HabitStreak) {
+private fun StreakRow(streak: HabitStreak) {
     val color = categoryColor(streak.category)
     Row(
         verticalAlignment = Alignment.CenterVertically,

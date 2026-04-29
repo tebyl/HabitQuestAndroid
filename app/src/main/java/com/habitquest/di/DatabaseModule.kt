@@ -5,6 +5,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.habitquest.data.local.HabitQuestDatabase
+import com.habitquest.data.local.HabitQuestMigrations
 import com.habitquest.data.local.dao.HabitDao
 import com.habitquest.data.local.dao.TaskDao
 import com.habitquest.data.local.dao.UserStatsDao
@@ -41,13 +42,8 @@ object DatabaseModule {
         }
 
         val callback = object : RoomDatabase.Callback() {
-            override fun onCreate(database: SupportSQLiteDatabase) {
-                super.onCreate(database)
-                seedData()
-            }
-
-            override fun onDestructiveMigration(database: SupportSQLiteDatabase) {
-                super.onDestructiveMigration(database)
+            override fun onCreate(db: SupportSQLiteDatabase) {
+                super.onCreate(db)
                 seedData()
             }
         }
@@ -57,7 +53,11 @@ object DatabaseModule {
             HabitQuestDatabase::class.java,
             "habit_quest.db"
         )
-            .fallbackToDestructiveMigration()
+            .addMigrations(
+                HabitQuestMigrations.MIGRATION_1_2,
+                HabitQuestMigrations.MIGRATION_2_3,
+                HabitQuestMigrations.MIGRATION_3_4
+            )
             .addCallback(callback)
             .build()
         return db

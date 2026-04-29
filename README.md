@@ -1,89 +1,141 @@
-# 🌟 HabitQuestAndroid
+# HabitQuest
 
 <div align="center">
 
-# 🚀 HabitQuest
-### Convierte tus hábitos y tareas en una aventura diaria
+## Build better habits through a lightweight RPG experience
 
-Una app mobile gamificada para construir hábitos, completar tareas y subir de nivel con experiencia, rachas y progreso personal.
+HabitQuest is an Android MVP for tracking habits and tasks with XP, levels, streaks, profile progression, and local offline persistence.
 
-<br>
+<br />
 
-![Platform](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
-![Kotlin](https://img.shields.io/badge/Kotlin-Ready-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
-![Status](https://img.shields.io/badge/Status-In%20Development-00C2FF?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-orange?style=for-the-badge)
+![Android](https://img.shields.io/badge/Platform-Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
+![Material 3](https://img.shields.io/badge/Material%203-6750A4?style=for-the-badge&logo=materialdesign&logoColor=white)
+![Room](https://img.shields.io/badge/Room-Offline-0F9D58?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-MVP-F59E0B?style=for-the-badge)
 
 </div>
 
 ---
 
-## 📱 Descripción
+## Overview
 
-**HabitQuest** es una aplicación Android diseñada para transformar el cumplimiento de hábitos y tareas en una experiencia interactiva y motivadora.
+HabitQuest turns everyday habits and tasks into a simple gamified loop: create activities, complete them, gain XP, maintain streaks, level up, and review progress over time.
 
-La app permite registrar actividades diarias, ganar experiencia, mantener rachas y visualizar el progreso de forma clara, atractiva y minimalista.
+The app is built as a local-first Android experience. Data is persisted with Room, the UI is written in Jetpack Compose with Material 3, and the project uses Hilt-backed MVVM screens.
 
-Está pensada para quienes quieren mejorar su constancia con una experiencia más entretenida que una simple lista de pendientes.
+## Screenshots
 
----
+Place screenshots in `docs/screenshots/` using the following relative paths:
 
-## ✨ Características principales
+| Home | Statistics | Profile |
+|---|---|---|
+| ![Home](docs/screenshots/home.png) | ![Statistics](docs/screenshots/statistics.png) | ![Profile](docs/screenshots/profile.png) |
 
-- ✅ Registro de hábitos diarios
-- ✅ Registro de tareas personalizadas
-- ✅ Sistema de experiencia (XP)
-- ✅ Ranking según desempeño
-- ✅ Progreso visual del usuario
-- ✅ Interfaz minimalista e interactiva
-- ✅ Reversión de acciones por clic accidental
-- ✅ Puntaje variable según categoría
-- ✅ Base de datos de usuarios
-- ✅ Enfoque en aprendizaje, disciplina y constancia
+| Evolution Pet |
+|---|
+| ![Evolution Pet](docs/screenshots/profile-pet.png) |
 
----
+## Features
 
-## 🧩 Funcionalidades de la app
+- Habit creation with category, icon, frequency, validation, and XP preview.
+- Task creation with category selection and inline validation.
+- Complete and revert habits/tasks with XP updates.
+- Category-based habit XP policy and fixed task XP.
+- Daily habit reset support.
+- Streak, total completions, and XP feedback.
+- RPG-style profile with level, rank, avatar, and name editing.
+- Evolution Pet System: a companion that evolves from Egg to Legend based on XP, level, streak, completed habits, and completed tasks.
+- Achievement badges with locked/unlocked states.
+- Statistics screen with weekly habit/task charts and category breakdown.
+- Empty state cards for key screens.
+- Offline persistence with Room.
+- Bottom navigation across Home, Statistics, and Profile.
 
-### 🎯 Hábitos
-El usuario puede marcar hábitos completados durante el día y recibir puntos de experiencia automáticamente.
+## Evolution Pet System
 
-Ejemplos:
-- Beber agua
-- Hacer ejercicio
-- Leer 20 minutos
-- Dormir temprano
-- Meditar
-- Estudiar
+The Profile screen includes a lightweight digital companion that represents user consistency. It evolves using existing progress data only: total XP, current level, streak, completed habits, and completed tasks.
 
-### 📝 Tareas
-El usuario también puede añadir tareas propias.
+Stages:
 
-- Cada tarea puede tener un puntaje por defecto
-- El puntaje puede variar según categoría
-- Si el usuario marca una tarea por error, puede revertir la acción y restar el puntaje correspondiente
+- **Egg**
+- **Baby**
+- **Explorer**
+- **Guardian**
+- **Legend**
 
-### 🏆 Ranking
-La aplicación considera el desempeño del usuario en función de:
-- hábitos completados
-- tareas realizadas
-- constancia
-- experiencia acumulada
-- progreso general
+## Stack
 
-Esto permite comparar resultados y generar motivación adicional.
+- **Language:** Kotlin
+- **UI:** Jetpack Compose, Material 3
+- **Persistence:** Room
+- **Dependency injection:** Hilt
+- **Architecture style:** MVVM
+- **Async/state:** Kotlin Coroutines, Flow, StateFlow
+- **Build:** Gradle Kotlin DSL, Android Gradle Plugin
 
----
+## Architecture
 
-## 🖼️ Vista general del proyecto
+The project keeps a compact MVVM structure suitable for an MVP:
 
 ```text
-HabitQuestAndroid/
-├── app/
-├── gradle/
-├── assets/
-├── components/
-├── screens/
-├── database/
-├── README.md
-└── ...
+app/src/main/java/com/habitquest/
++-- data/
+|   +-- local/          # Room database, DAOs, entities
+|   +-- repository/     # Repository contract and implementation
++-- di/                 # Hilt modules
++-- domain/model/       # Domain models and level/achievement helpers
++-- notification/       # Reminder-related worker/helper classes
++-- ui/
+    +-- component/      # Reusable Compose UI components
+    +-- navigation/     # Bottom navigation and routes
+    +-- screen/home/    # Home flow, create sheet, selectors
+    +-- screen/profile/ # Profile, rank, badges, XP progress
+    +-- screen/statistics/
+```
+
+Data flows from Room DAOs through `HabitRepository`, then into screen `ViewModel`s as `StateFlow` UI state. Compose screens collect that state and send user actions back to the ViewModel.
+
+## MVP Status
+
+HabitQuest is currently an MVP: the core loop works, the app builds successfully, and the main screens are implemented. It is ready to publish as an early project/demo repository, with the known limitations listed in the roadmap.
+
+## Build & Test
+
+From the project root:
+
+```bash
+./gradlew :app:assembleDebug
+```
+
+On Windows:
+
+```powershell
+.\gradlew.bat :app:assembleDebug
+```
+
+Run existing unit tests:
+
+```bash
+./gradlew :app:testDebugUnitTest
+```
+
+On Windows:
+
+```powershell
+.\gradlew.bat :app:testDebugUnitTest
+```
+
+Current unit test coverage includes 9 JVM tests for XP rules, level calculation, habit completion/revert behavior, empty statistics calculation, and pet evolution.
+
+## Roadmap
+
+- Replace destructive Room fallback with explicit migrations.
+- Add completion history for more accurate long-term statistics.
+- Add Compose smoke/UI tests for navigation and core flows.
+- Add local backup/export support.
+
+## Project Status
+
+This repository is intended as a clean, presentable Android MVP for habit tracking with gamification. It does not use Firebase and does not require a network connection for the core experience.
