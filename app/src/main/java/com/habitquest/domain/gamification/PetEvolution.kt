@@ -7,11 +7,11 @@ enum class PetStage(
     val icon: String,
     val phrase: String
 ) {
-    EGG("Egg", 1, 0, "\uD83E\uDD5A", "Tu aventura esta por comenzar"),
-    BABY("Baby", 2, 300, "\uD83C\uDF31", "Cada pequeno habito la hace crecer"),
-    EXPLORER("Explorer", 3, 800, "\uD83E\uDDED", "Ya explora nuevas rutinas contigo"),
-    GUARDIAN("Guardian", 4, 1500, "\uD83D\uDEE1\uFE0F", "Protege tu constancia diaria"),
-    LEGEND("Legend", 5, 2500, "\uD83D\uDC09", "Tu disciplina alcanzo nivel legendario")
+    EGG("Semilla", 1, 0, "🌱", "Tu camino está por florecer"),
+    BABY("Brote", 2, 300, "🌷", "Cada pequeño hábito la hace crecer"),
+    EXPLORER("Flor", 3, 800, "🌸", "Descubre nuevas rutinas contigo"),
+    GUARDIAN("Aura", 4, 1500, "✨", "Protege tu constancia diaria"),
+    LEGEND("Esencia", 5, 2500, "👑", "Tu disciplina inspira calma y progreso")
 }
 
 data class PetState(

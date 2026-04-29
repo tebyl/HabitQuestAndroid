@@ -11,11 +11,11 @@ data class Level(
 
 object Levels {
     val all = listOf(
-        Level(1, "Novice",    0,    Color(0xFF6B7280)),
-        Level(2, "Aprendiz",  200,  Color(0xFF10B981)),
-        Level(3, "Guerrero",  500,  Color(0xFF3B82F6)),
-        Level(4, "Héroe",     1000, Color(0xFF8B5CF6)),
-        Level(5, "Leyenda",   2000, Color(0xFFF59E0B)),
+        Level(1, "Inicio",                0,    Color(0xFF6B7280)),
+        Level(2, "Aprendiz",            200,  Color(0xFF10B981)),
+        Level(3, "Constante",           500,  Color(0xFF3B82F6)),
+        Level(4, "Creadora de hábitos", 1000, Color(0xFF8B5CF6)),
+        Level(5, "Inspiradora",        2000, Color(0xFFF59E0B)),
     )
 
     fun getCurrentLevel(xp: Int): Level {

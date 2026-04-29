@@ -25,14 +25,14 @@ fun RankCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(CardBackground)
-            .border(1.dp, DividerLight, RoundedCornerShape(16.dp))
+            .border(1.dp, DividerLight, RoundedCornerShape(22.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Text(
-            text = "RANGO DE HÉROE",
+            text = "CAMINO DE CRECIMIENTO",
             style = AppTypography.labelSmall,
             color = TextMuted,
             letterSpacing = 1.sp
@@ -83,7 +83,7 @@ fun RankCard(
                     )
                     if (isCurrent) {
                         Text(
-                            text = "← Rango actual",
+                            text = "Etapa actual",
                             style = AppTypography.labelSmall,
                             color = Amber,
                             fontSize = 9.sp

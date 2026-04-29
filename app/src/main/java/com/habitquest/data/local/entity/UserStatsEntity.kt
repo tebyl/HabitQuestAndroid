@@ -9,6 +9,6 @@ data class UserStatsEntity(
     val id: Int = 1,
     val totalXP: Int = 0,
     val lastDailyReset: String = "",
-    val userName: String = "Héroe",
-    val userAvatar: String = "🦸"
+    val userName: String = "Tu espacio",
+    val userAvatar: String = "\uD83D\uDC69\uD83C\uDFFB\u200D\uD83E\uDDB0"
 )

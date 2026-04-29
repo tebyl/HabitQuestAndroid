@@ -45,7 +45,7 @@ fun EvolutionPetCard(
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text(
-            text = "Tu companera de viaje",
+            text = "Tu compañera de viaje",
             style = AppTypography.titleMedium,
             color = TextPrimary
         )
@@ -56,13 +56,16 @@ fun EvolutionPetCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(132.dp)
+                    .size(140.dp)
                     .clip(CircleShape)
                     .background(Brush.radialGradient(listOf(Color.White, stageColor.copy(alpha = 0.20f))))
                     .border(2.dp, Color.White.copy(alpha = 0.82f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = petState.stage.icon, fontSize = 62.sp)
+                PetAnimation(
+                    animationRes = petAnimationResFor(petState.stage),
+                    modifier = Modifier.size(128.dp)
+                )
             }
 
             Column(modifier = Modifier.weight(1f)) {
@@ -79,7 +82,7 @@ fun EvolutionPetCard(
                     )
                     if (petState.streakBonusActive) {
                         Text(
-                            text = "RACHA +",
+                            text = "RITMO +",
                             style = AppTypography.labelSmall,
                             color = Amber,
                             fontSize = 9.sp,
@@ -112,7 +115,7 @@ fun EvolutionPetCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = petState.nextStage?.let { "Proxima evolucion: ${it.label}" } ?: "Evolucion completa",
+                    text = petState.nextStage?.let { "Próxima evolución: ${it.label}" } ?: "Evolución completa",
                     style = AppTypography.labelSmall,
                     color = TextMuted,
                     fontSize = 10.sp
@@ -148,8 +151,8 @@ fun EvolutionPetCard(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             PetMetric("XP total", "${petState.totalXP}", Purple, Modifier.weight(1f))
-            PetMetric("Mejor racha", "${petState.streak}d", Orange, Modifier.weight(1f))
-            PetMetric("Habitos", petState.habitsCompleted.toString(), Emerald, Modifier.weight(1f))
+            PetMetric("Mejor ritmo", "${petState.streak}d", Orange, Modifier.weight(1f))
+            PetMetric("Hábitos", petState.habitsCompleted.toString(), Emerald, Modifier.weight(1f))
         }
     }
 }

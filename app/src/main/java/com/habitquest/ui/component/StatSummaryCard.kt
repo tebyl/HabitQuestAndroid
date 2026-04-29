@@ -24,11 +24,11 @@ fun StatSummaryCard(
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(CardBackground)
-            .border(1.dp, DividerLight, RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .background(tintColor.copy(alpha = 0.10f))
+            .border(1.dp, Color.White.copy(alpha = 0.70f), RoundedCornerShape(20.dp))
             .padding(horizontal = 14.dp, vertical = 12.dp)
     ) {
         Text(text = icon, fontSize = 24.sp)

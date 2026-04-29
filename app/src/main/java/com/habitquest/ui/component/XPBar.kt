@@ -9,7 +9,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import com.habitquest.ui.theme.*
@@ -49,19 +48,18 @@ fun XPBar(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(6.dp)
-                .clip(RoundedCornerShape(3.dp))
-                .background(CardBackground2)
+                .height(8.dp)
+                .clip(RoundedCornerShape(4.dp))
+                .background(Purple.copy(alpha = 0.16f))
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(animatedPct)
-                    .clip(RoundedCornerShape(3.dp))
+                    .clip(RoundedCornerShape(4.dp))
                     .background(
-                        Brush.horizontalGradient(listOf(Amber, Red))
+                        Brush.horizontalGradient(listOf(Purple, Orange.copy(alpha = 0.86f)))
                     )
-                    .shadow(elevation = 4.dp, shape = RoundedCornerShape(3.dp))
             )
         }
     }

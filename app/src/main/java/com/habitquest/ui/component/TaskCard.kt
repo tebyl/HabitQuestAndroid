@@ -26,13 +26,13 @@ private val taskBg     = Color(0xFFFFFFFF)
 private val taskBgDone = Color(0xFFF7FBF3)
 
 private val categoryColors = mapOf(
-    "productividad"      to Color(0xFF3B82F6),
-    "salud_fisica"       to Color(0xFF10B981),
-    "salud_mental"       to Color(0xFF8B5CF6),
-    "vida_diaria"        to Color(0xFFF59E0B),
-    "desarrollo"         to Color(0xFFEC4899),
-    "disciplina_digital" to Color(0xFFEF4444),
-    "gamificacion"       to Color(0xFFF59E0B),
+    "productividad"      to Color(0xFF8FB8F6),
+    "salud_fisica"       to Color(0xFF7ED957),
+    "salud_mental"       to Color(0xFFB8A1FF),
+    "vida_diaria"        to Color(0xFFFF8A7A),
+    "desarrollo"         to Color(0xFFDDA6D8),
+    "disciplina_digital" to Color(0xFFFFA199),
+    "gamificacion"       to Color(0xFFF4C766),
 )
 
 private val categoryLabels = mapOf(

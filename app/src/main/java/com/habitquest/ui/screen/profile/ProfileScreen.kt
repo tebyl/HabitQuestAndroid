@@ -118,7 +118,7 @@ fun ProfileScreen(
                     color = TextPrimary
                 )
                 Text(
-                    text = "Tu progreso importa \u2728",
+                    text = "Bienestar, ritmo y progreso.",
                     style = AppTypography.bodyLarge,
                     color = TextMuted
                 )
@@ -204,7 +204,7 @@ fun ProfileScreen(
                 EmptyStateCard(
                     icon     = "🏅",
                     title    = "Sin logros aún",
-                    subtitle = "Completa hábitos para desbloquearlos",
+                    subtitle = "Completa hábitos para descubrir nuevos logros",
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
                 Spacer(Modifier.height(14.dp))
@@ -258,7 +258,7 @@ fun ProfileScreen(
                 SettingsRow(
                     icon  = if (themeController.isDarkTheme) "🌙" else "☀️",
                     label = "Tema",
-                    trailing = if (themeController.isDarkTheme) "Dark" else "Light",
+                    trailing = if (themeController.isDarkTheme) "Oscuro" else "Claro",
                     onClick = { themeController.setDarkTheme(!themeController.isDarkTheme) }
                 )
                 HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
@@ -324,9 +324,20 @@ private fun AvatarPickerDialog(
     onSelect: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val selectedAvatar = resolveSupportedAvatar(currentAvatar)
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
+        containerColor = Color.Transparent,
+        shape = RoundedCornerShape(28.dp),
+        modifier = Modifier
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(Color.White.copy(alpha = 0.96f), Purple.copy(alpha = 0.12f))
+                )
+            )
+            .border(1.dp, Color.White.copy(alpha = 0.74f), RoundedCornerShape(28.dp)),
         title = {
             Text(
                 text = "Elige tu avatar",
@@ -337,34 +348,55 @@ private fun AvatarPickerDialog(
         text = {
             LazyVerticalGrid(
                 columns = GridCells.Fixed(3),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.height(180.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.height(236.dp)
             ) {
                 items(AVATAR_OPTIONS) { option ->
-                    val isSelected = option.emoji == currentAvatar
+                    val isSelected = option.emoji == selectedAvatar
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(22.dp))
                             .background(
-                                if (isSelected) Amber.copy(alpha = 0.15f)
-                                else Color.Transparent
+                                if (isSelected) Purple.copy(alpha = 0.14f)
+                                else Color.White.copy(alpha = 0.56f)
                             )
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) Amber else com.habitquest.ui.theme.Divider,
-                                shape = RoundedCornerShape(12.dp)
+                                color = if (isSelected) Purple else Color.White.copy(alpha = 0.70f),
+                                shape = RoundedCornerShape(22.dp)
                             )
                             .clickable { onSelect(option.emoji) }
-                            .padding(vertical = 10.dp, horizontal = 6.dp)
+                            .padding(vertical = 12.dp, horizontal = 6.dp)
                     ) {
-                        Text(option.emoji, fontSize = 28.sp)
-                        Spacer(Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .size(54.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(
+                                        if (isSelected) {
+                                            listOf(Purple.copy(alpha = 0.26f), Orange.copy(alpha = 0.18f))
+                                        } else {
+                                            listOf(Color.White.copy(alpha = 0.94f), Purple.copy(alpha = 0.10f))
+                                        }
+                                    )
+                                )
+                                .border(
+                                    1.dp,
+                                    if (isSelected) Orange.copy(alpha = 0.54f) else Purple.copy(alpha = 0.12f),
+                                    CircleShape
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(option.emoji, fontSize = 30.sp)
+                        }
+                        Spacer(Modifier.height(8.dp))
                         Text(
                             text = option.label,
                             style = AppTypography.labelSmall,
-                            color = if (isSelected) Amber else TextMuted,
+                            color = if (isSelected) Purple else TextMuted,
                             fontSize = 10.sp,
                             textAlign = TextAlign.Center
                         )
@@ -373,8 +405,15 @@ private fun AvatarPickerDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cerrar", color = TextDim, style = AppTypography.labelLarge)
+            TextButton(
+                onClick = onDismiss,
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.textButtonColors(
+                    containerColor = Purple.copy(alpha = 0.12f),
+                    contentColor = Purple
+                )
+            ) {
+                Text("Cerrar", style = AppTypography.labelLarge)
             }
         }
     )

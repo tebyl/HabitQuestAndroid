@@ -78,7 +78,7 @@ object HabitQuestMigrations {
         )
 
         db.addColumnIfMissing("user_stats", "lastDailyReset", "TEXT NOT NULL DEFAULT ''")
-        db.addColumnIfMissing("user_stats", "userName", "TEXT NOT NULL DEFAULT 'Heroe'")
+        db.addColumnIfMissing("user_stats", "userName", "TEXT NOT NULL DEFAULT 'Tu espacio'")
         db.addColumnIfMissing("user_stats", "userAvatar", "TEXT NOT NULL DEFAULT ''")
         db.normalizeUserStatsTable()
     }

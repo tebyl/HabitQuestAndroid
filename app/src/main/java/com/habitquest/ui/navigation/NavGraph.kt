@@ -89,7 +89,7 @@ fun NavGraph() {
                         modifier = Modifier
                             .clip(RoundedCornerShape(12.dp))
                             .background(
-                                if (isSelected) Color(0x1AF59E0B) else Color.Transparent
+                                if (isSelected) Purple.copy(alpha = 0.14f) else Color.Transparent
                             )
                             .clickable(
                                 interactionSource = remember { MutableInteractionSource() },

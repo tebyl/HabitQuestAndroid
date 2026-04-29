@@ -27,9 +27,6 @@ import androidx.compose.ui.unit.sp
 import com.habitquest.ui.theme.Amber
 import com.habitquest.ui.theme.AppTypography
 import com.habitquest.ui.theme.Blue
-import com.habitquest.ui.theme.CardBackground
-import com.habitquest.ui.theme.CardBackground2
-import com.habitquest.ui.theme.DividerLight
 import com.habitquest.ui.theme.Emerald
 import com.habitquest.ui.theme.Gray
 import com.habitquest.ui.theme.Orange
@@ -47,9 +44,9 @@ private data class StreakMilestone(
 
 private val streakMilestones = listOf(
     StreakMilestone(days = 3, reward = "Constancia", color = Orange),
-    StreakMilestone(days = 7, reward = "Ritmo", color = Blue),
-    StreakMilestone(days = 14, reward = "Flujo", color = Amber),
-    StreakMilestone(days = 30, reward = "Plenitud", color = Purple)
+    StreakMilestone(days = 7, reward = "Ritmo", color = Emerald),
+    StreakMilestone(days = 14, reward = "Flujo", color = Purple),
+    StreakMilestone(days = 30, reward = "Habito real", color = Amber)
 )
 
 @Composable
@@ -59,7 +56,7 @@ fun StreakRewardCard(
     modifier: Modifier = Modifier
 ) {
     val nextMilestone = streakMilestones.firstOrNull { it.days > currentStreakDays }
-    val activeColor = nextMilestone?.color ?: Emerald
+    val activeColor = nextMilestone?.color ?: Purple
     val bestUnlocked = streakMilestones.lastOrNull { bestStreakDays >= it.days }
     val remainingDays = nextMilestone?.let { (it.days - currentStreakDays).coerceAtLeast(0) }
 
@@ -67,10 +64,10 @@ fun StreakRewardCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.linearGradient(listOf(CardBackground.copy(alpha = 0.96f), activeColor.copy(alpha = 0.10f))))
-            .border(1.dp, activeColor.copy(alpha = 0.22f), RoundedCornerShape(24.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.92f), Purple.copy(alpha = 0.10f))))
+            .border(1.dp, Color.White.copy(alpha = 0.72f), RoundedCornerShape(24.dp))
+            .padding(18.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -81,14 +78,14 @@ fun StreakRewardCard(
                 modifier = Modifier
                     .size(46.dp)
                     .clip(CircleShape)
-                    .background(activeColor.copy(alpha = 0.16f))
-                    .border(1.dp, activeColor.copy(alpha = 0.45f), CircleShape),
+                    .background(Orange.copy(alpha = 0.14f))
+                    .border(1.dp, Orange.copy(alpha = 0.26f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "${currentStreakDays}d",
                     style = AppTypography.labelLarge,
-                    color = activeColor,
+                    color = Orange,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -96,22 +93,21 @@ fun StreakRewardCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "TU RITMO",
+                    text = "TU RACHA ACTUAL",
                     style = AppTypography.labelSmall,
-                    color = activeColor,
+                    color = Orange,
                     letterSpacing = 1.sp,
                     fontSize = 9.sp
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = nextMilestone?.let { "Un paso suave hacia ${it.reward}" }
-                        ?: "Tu constancia esta floreciendo",
+                    text = "${currentStreakDays} dias contigo \uD83D\uDCAB",
                     style = AppTypography.titleMedium,
                     color = TextPrimary
                 )
                 Text(
-                    text = remainingDays?.let { "$it dias mas para tu proximo momento" }
-                        ?: "Momento alcanzado: ${bestUnlocked?.reward ?: "Plenitud"}",
+                    text = remainingDays?.let { "Sigue creando tu rutina" }
+                        ?: "Momento alcanzado: ${bestUnlocked?.reward ?: "Habito real"}",
                     style = AppTypography.labelSmall,
                     color = TextDim,
                     fontSize = 11.sp
@@ -163,8 +159,8 @@ private fun StreakStat(
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(CardBackground2.copy(alpha = 0.65f))
-            .border(1.dp, DividerLight.copy(alpha = 0.55f), RoundedCornerShape(18.dp))
+            .background(Color.White.copy(alpha = 0.62f))
+            .border(1.dp, color.copy(alpha = 0.12f), RoundedCornerShape(18.dp))
             .padding(vertical = 10.dp, horizontal = 12.dp)
     ) {
         Text(
@@ -199,12 +195,12 @@ private fun StreakMilestoneChip(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(color.copy(alpha = if (unlocked) 0.16f else 0.08f))
+            .clip(RoundedCornerShape(18.dp))
+            .background(color.copy(alpha = if (unlocked) 0.18f else 0.06f))
             .border(
                 width = 1.dp,
                 color = color.copy(alpha = if (isNext) 0.42f else 0.18f),
-                shape = RoundedCornerShape(12.dp)
+                shape = RoundedCornerShape(18.dp)
             )
             .padding(vertical = 9.dp, horizontal = 4.dp)
     ) {

@@ -28,28 +28,27 @@ fun AchievementBadgeCard(
             .clip(RoundedCornerShape(22.dp))
             .background(
                 if (unlocked)
-                    Brush.linearGradient(listOf(Amber.copy(alpha = 0.18f), Orange.copy(alpha = 0.12f)))
+                    Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), Emerald.copy(alpha = 0.14f), Purple.copy(alpha = 0.10f)))
                 else
-                    Brush.linearGradient(listOf(Color.White.copy(alpha = 0.52f), CardBackground.copy(alpha = 0.42f)))
+                    Brush.linearGradient(listOf(Color.White.copy(alpha = 0.62f), CardBackground.copy(alpha = 0.42f)))
             )
             .border(
                 width = 1.dp,
-                color = if (unlocked) Amber.copy(alpha = 0.24f) else DividerLight.copy(alpha = 0.28f),
+                color = if (unlocked) Emerald.copy(alpha = 0.24f) else DividerLight.copy(alpha = 0.28f),
                 shape = RoundedCornerShape(22.dp)
             )
-            .graphicsLayer { alpha = if (unlocked) 1f else 0.56f }
+            .graphicsLayer { alpha = if (unlocked) 1f else 0.72f }
             .padding(14.dp)
     ) {
-        // Icon row with lock overlay when locked
         Box {
             Text(
                 text = achievement.icon,
                 fontSize = 28.sp
             )
-            if (!unlocked) {
+            if (unlocked) {
                 Text(
-                    text = "🔒",
-                    fontSize = 13.sp,
+                    text = "✅",
+                    fontSize = 11.sp,
                     modifier = Modifier.align(Alignment.BottomEnd)
                 )
             }
@@ -70,5 +69,15 @@ fun AchievementBadgeCard(
             color = if (unlocked) TextDim else TextDimmer,
             fontSize = 10.sp
         )
+
+        if (!achievement.progressText.isNullOrBlank()) {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = achievement.progressText,
+                style = AppTypography.labelSmall,
+                color = if (unlocked) Emerald else TextMuted,
+                fontSize = 9.sp
+            )
+        }
     }
 }

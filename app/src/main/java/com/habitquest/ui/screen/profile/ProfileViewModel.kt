@@ -19,28 +19,33 @@ import javax.inject.Inject
 data class AvatarOption(val emoji: String, val label: String)
 
 val AVATAR_OPTIONS = listOf(
-    AvatarOption("🐱", "Gato"),
-    AvatarOption("🐈", "Gata"),
-    AvatarOption("🐕", "Perro"),
-    AvatarOption("🐩", "Perra"),
-    AvatarOption("🦸", "Humano"),
-    AvatarOption("🧝", "Humana"),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFB\u200D\uD83E\uDDB0", "Chica 1 \uD83C\uDF38"),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFD", "Chica 2 \u2728"),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFB", "Chica 3 \uD83D\uDC9C"),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFB\u200D\uD83D\uDCBB", "Chica 4 \u2615"),
+    AvatarOption("\uD83D\uDC69\u200D\uD83E\uDDB1", "Chica 5 \uD83C\uDF3F"),
+    AvatarOption("\uD83D\uDC71\u200D\u2640\uFE0F", "Chica 6 \uD83C\uDF80"),
 )
 
+val DEFAULT_AVATAR = AVATAR_OPTIONS.first().emoji
+
+fun resolveSupportedAvatar(avatar: String): String =
+    AVATAR_OPTIONS.firstOrNull { it.emoji == avatar }?.emoji ?: DEFAULT_AVATAR
+
 enum class Rank(val title: String, val icon: String, val color: Color) {
-    NOVATO("Novato", "⚔️", Color(0xFF6B7280)),
-    EXPLORADOR("Explorador", "🗺️", Color(0xFF10B981)),
-    CONSTANTE("Constante", "🛡️", Color(0xFF3B82F6)),
-    MAESTRO("Maestro de Hábitos", "⚡", Color(0xFF8B5CF6)),
-    LEYENDA("Leyenda", "👑", Color(0xFFF59E0B))
+    INICIO("Inicio", "🌱", Color(0xFF6B7280)),
+    EXPLORADORA("Exploradora", "✨", Color(0xFF10B981)),
+    CONSTANTE("Constante", "💗", Color(0xFFFB7185)),
+    CREADORA_DE_HABITOS("Creadora de hábitos", "🌿", Color(0xFF8B5CF6)),
+    INSPIRADORA("Inspiradora", "👑", Color(0xFFF59E0B))
 }
 
 fun rankFromLevel(level: Int): Rank = when (level) {
-    1 -> Rank.NOVATO
-    2 -> Rank.EXPLORADOR
+    1 -> Rank.INICIO
+    2 -> Rank.EXPLORADORA
     3 -> Rank.CONSTANTE
-    4 -> Rank.MAESTRO
-    else -> Rank.LEYENDA
+    4 -> Rank.CREADORA_DE_HABITOS
+    else -> Rank.INSPIRADORA
 }
 
 data class ProfileAchievement(
@@ -48,7 +53,8 @@ data class ProfileAchievement(
     val title: String,
     val description: String,
     val icon: String,
-    val unlocked: Boolean
+    val unlocked: Boolean,
+    val progressText: String? = null
 )
 
 @HiltViewModel
@@ -62,9 +68,9 @@ class ProfileViewModel @Inject constructor(
         val currentLevel: Level = Levels.all.first(),
         val xpToNextLevel: Int = 200,
         val xpInCurrentLevel: Int = 0,
-        val userName: String = "Héroe",
-        val userAvatar: String = "🦸",
-        val rank: Rank = Rank.NOVATO,
+        val userName: String = "Tu espacio",
+        val userAvatar: String = DEFAULT_AVATAR,
+        val rank: Rank = Rank.INICIO,
         val achievements: List<ProfileAchievement> = emptyList(),
         val maxStreak: Int = 0,
         val tasksCompleted: Int = 0,
@@ -97,7 +103,7 @@ class ProfileViewModel @Inject constructor(
                             xpToNextLevel    = Levels.getXPToNext(stats.totalXP),
                             xpInCurrentLevel = Levels.getXPInCurrentLevel(stats.totalXP),
                             userName         = stats.userName,
-                            userAvatar       = stats.userAvatar,
+                            userAvatar       = resolveSupportedAvatar(stats.userAvatar),
                             editNameDraft    = if (it.isEditingName) it.editNameDraft else stats.userName,
                             rank             = rankFromLevel(level.level),
                             achievements     = buildAchievements(habits, stats.totalXP, level.level, tasksCompleted, maxStreak),
@@ -117,11 +123,11 @@ class ProfileViewModel @Inject constructor(
         tasksCompleted: Int,
         maxStreak: Int
     ): List<ProfileAchievement> = listOf(
-        ProfileAchievement(1, "Primer Hábito",  "Completa al menos 1 hábito",       "🌱", habits.any { it.totalDays >= 1 }),
-        ProfileAchievement(2, "Racha 7 Días",   "Mantén una racha de 7 días",        "🔥", maxStreak >= 7),
-        ProfileAchievement(3, "10 Tareas",      "Completa 10 tareas",                "✅", tasksCompleted >= 10),
-        ProfileAchievement(4, "Nivel 5",        "Alcanza el nivel máximo",           "👑", levelNum >= 5),
-        ProfileAchievement(5, "1000 XP",        "Acumula 1000 puntos de experiencia","⚡", totalXP >= 1000),
+        ProfileAchievement(1, "Primer paso",       "Completa tu primer hábito",        "🌱", habits.any { it.totalDays >= 1 }),
+        ProfileAchievement(2, "Ritmo de 7 días",   "Mantén tu constancia una semana",  "💗", maxStreak >= 7, if (maxStreak >= 7) null else "$maxStreak/7"),
+        ProfileAchievement(3, "Rutina organizada", "Completa 10 tareas",               "✅", tasksCompleted >= 10, if (tasksCompleted >= 10) null else "$tasksCompleted/10"),
+        ProfileAchievement(4, "Nueva versión",     "Alcanza una nueva etapa",          "👑", levelNum >= 5, if (levelNum >= 5) null else "$levelNum/5"),
+        ProfileAchievement(5, "Energía acumulada", "Suma 1000 puntos de progreso",     "✨", totalXP >= 1000, if (totalXP >= 1000) null else "$totalXP/1000"),
     )
 
     fun startEditingName() {
@@ -133,7 +139,7 @@ class ProfileViewModel @Inject constructor(
     }
 
     fun confirmEditName() {
-        val name = _uiState.value.editNameDraft.trim().ifEmpty { "Héroe" }
+        val name = _uiState.value.editNameDraft.trim().ifEmpty { "Tu espacio" }
         _uiState.update { it.copy(isEditingName = false, userName = name) }
         viewModelScope.launch { repository.updateUserName(name) }
     }

@@ -61,12 +61,13 @@ fun HomeScreen(
     val completedTasks = state.tasks.filter { it.isCompleted }
     val habitsAtRisk   = state.habits.filter { it.streakCount > 0 && !it.completedToday }
     val currentStreak  = state.habits.maxOfOrNull { it.streakCount } ?: 0
-    val petState       = resolvePetState(
+    
+    val petState = resolvePetState(
         totalXP = state.totalXP,
         level = state.currentLevel.level,
         streak = currentStreak,
         habitsCompleted = state.habits.sumOf { it.totalDays },
-        tasksCompleted = completedTasks.size
+        tasksCompleted = state.tasks.count { it.isCompleted }
     )
 
     Box(
@@ -109,16 +110,15 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        // Level badge
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(state.currentLevel.color.copy(alpha = 0.13f))
+                                .background(Purple.copy(alpha = 0.13f))
                                 .border(
                                     1.dp,
-                                    state.currentLevel.color.copy(alpha = 0.3f),
+                                    Purple.copy(alpha = 0.24f),
                                     RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
@@ -126,20 +126,19 @@ fun HomeScreen(
                             Text(
                                 text = "LVL ${state.currentLevel.level}",
                                 style = AppTypography.labelSmall,
-                                color = state.currentLevel.color,
+                                color = Purple,
                                 fontSize = 10.sp
                             )
                         }
-                        // Avatar circle
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(38.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    Brush.linearGradient(listOf(Amber.copy(alpha = 0.7f), Red.copy(alpha = 0.7f)))
+                                    Brush.linearGradient(listOf(Purple.copy(alpha = 0.42f), Orange.copy(alpha = 0.34f)))
                                 )
-                                .border(2.dp, Amber.copy(alpha = 0.5f), CircleShape)
+                                .border(2.dp, Color.White.copy(alpha = 0.74f), CircleShape)
                         ) {
                             Text(state.userAvatar, fontSize = 18.sp)
                         }
@@ -204,7 +203,7 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
-                                .size(116.dp)
+                                .size(144.dp)
                                 .clip(CircleShape)
                                 .background(
                                     Brush.radialGradient(
@@ -213,7 +212,10 @@ fun HomeScreen(
                                 )
                                 .border(1.dp, Color.White.copy(alpha = 0.72f), CircleShape)
                         ) {
-                            Text(text = petState.stage.icon, fontSize = 54.sp)
+                            PetAnimation(
+                                animationRes = petAnimationResFor(petState.stage),
+                                modifier = Modifier.size(136.dp)
+                            )
                         }
                         HomeHeroMetric(
                             label = "dias",
@@ -247,7 +249,7 @@ fun HomeScreen(
                         )
                     }
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(22.dp))
             }
 
             // ── Week calendar ──────────────────────────────────────
@@ -256,7 +258,7 @@ fun HomeScreen(
                     completedDates = completedDates,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(22.dp))
             }
 
             // ── Daily mission card ─────────────────────────────────
@@ -267,7 +269,7 @@ fun HomeScreen(
                     totalHabits     = state.habits.size,
                     modifier        = Modifier.padding(horizontal = 20.dp)
                 )
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(22.dp))
             }
 
             // Daily streak reward
@@ -288,9 +290,9 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Red.copy(alpha = 0.08f))
-                            .border(1.dp, Red.copy(alpha = 0.25f), RoundedCornerShape(12.dp))
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White.copy(alpha = 0.74f))
+                            .border(1.dp, Orange.copy(alpha = 0.20f), RoundedCornerShape(20.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -300,7 +302,7 @@ fun HomeScreen(
                             Text(
                                 text = "RACHAS EN RIESGO",
                                 style = AppTypography.labelSmall,
-                                color = Red,
+                                color = Orange,
                                 letterSpacing = 1.sp,
                                 fontSize = 10.sp
                             )
@@ -438,8 +440,8 @@ fun HomeScreen(
                 .navigationBarsPadding()
                 .padding(end = 20.dp, bottom = 88.dp),
             shape = CircleShape,
-            containerColor = Amber,
-            contentColor = Background
+            containerColor = Purple,
+            contentColor = Color.White
         ) {
             Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, lineHeight = 26.sp)
         }
@@ -460,17 +462,17 @@ fun HomeScreen(
                         .clip(RoundedCornerShape(20.dp))
                         .background(
                             if (toast.isLevelUp)
-                                Brush.linearGradient(listOf(Color(0xFF92400E), Color(0xFFB45309)))
+                                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), Amber.copy(alpha = 0.18f)))
                             else if (toast.message.startsWith("-"))
-                                Brush.linearGradient(listOf(Color(0xFF7F1D1D), Color(0xFF991B1B)))
+                                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), Orange.copy(alpha = 0.18f)))
                             else
-                                Brush.linearGradient(listOf(EmeraldDark, Color(0xFF65A30D)))
+                                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), Emerald.copy(alpha = 0.18f)))
                         )
                         .border(
                             1.dp,
-                            if (toast.isLevelUp) Amber
-                            else if (toast.message.startsWith("-")) Red
-                            else Emerald,
+                            if (toast.isLevelUp) Amber.copy(alpha = 0.34f)
+                            else if (toast.message.startsWith("-")) Orange.copy(alpha = 0.34f)
+                            else Emerald.copy(alpha = 0.34f),
                             RoundedCornerShape(20.dp)
                         )
                         .padding(horizontal = 20.dp, vertical = 10.dp)
@@ -478,7 +480,7 @@ fun HomeScreen(
                     Text(
                         text = toast.message,
                         style = AppTypography.labelLarge,
-                        color = Color.White
+                        color = TextPrimary
                     )
                 }
             }

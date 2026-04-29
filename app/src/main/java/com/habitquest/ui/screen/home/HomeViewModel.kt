@@ -8,6 +8,8 @@ import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Level
 import com.habitquest.domain.model.Levels
 import com.habitquest.domain.model.Task
+import com.habitquest.ui.screen.profile.DEFAULT_AVATAR
+import com.habitquest.ui.screen.profile.resolveSupportedAvatar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -32,8 +34,8 @@ class HomeViewModel @Inject constructor(
         val currentLevel: Level = Levels.all.first(),
         val xpToNext: Int = 200,
         val xpInCurrentLevel: Int = 0,
-        val userAvatar: String = "🦸",
-        val userName: String = "Héroe",
+        val userAvatar: String = DEFAULT_AVATAR,
+        val userName: String = "Tu espacio",
         val toast: ToastState? = null,
         val showQuickAdd: Boolean = false,
         val isLoading: Boolean = true
@@ -61,7 +63,7 @@ class HomeViewModel @Inject constructor(
                             currentLevel     = level,
                             xpToNext         = Levels.getXPToNext(stats.totalXP),
                             xpInCurrentLevel = Levels.getXPInCurrentLevel(stats.totalXP),
-                            userAvatar       = stats.userAvatar,
+                            userAvatar       = resolveSupportedAvatar(stats.userAvatar),
                             userName         = stats.userName,
                             isLoading        = false
                         )

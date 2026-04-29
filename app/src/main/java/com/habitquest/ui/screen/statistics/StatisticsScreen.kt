@@ -11,6 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,7 +29,11 @@ fun StatisticsScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background),
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFFF5EDE6), Color(0xFFEFE3F5), Background)
+                )
+            ),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         // ── Header ───────────────────────────────────────────────
@@ -183,9 +189,9 @@ private fun SectionCard(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(16.dp))
-            .background(CardBackground)
-            .border(1.dp, DividerLight, RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(24.dp))
+            .background(Color.White.copy(alpha = 0.74f))
+            .border(1.dp, Color.White.copy(alpha = 0.62f), RoundedCornerShape(24.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {

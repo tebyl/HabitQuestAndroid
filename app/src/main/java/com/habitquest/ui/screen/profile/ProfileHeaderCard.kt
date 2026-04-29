@@ -71,13 +71,12 @@ fun ProfileHeaderCard(
 
         Spacer(Modifier.height(14.dp))
 
-        // Name with edit button
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
-                text = name,
+                text = "Hola, $name 💜",
                 style = AppTypography.headlineMedium,
                 color = TextPrimary
             )
@@ -91,7 +90,7 @@ fun ProfileHeaderCard(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = "Tu progreso importa \u2728",
+            text = "Sigue creciendo, un hábito a la vez.",
             style = AppTypography.bodyMedium,
             color = TextMuted
         )
@@ -114,7 +113,7 @@ fun ProfileHeaderCard(
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
                 Text(
-                    text = "LVL ${currentLevel.level}",
+                    text = "LVL ${currentLevel.level} ${currentLevel.name}",
                     style = AppTypography.labelSmall,
                     color = currentLevel.color,
                     fontSize = 11.sp

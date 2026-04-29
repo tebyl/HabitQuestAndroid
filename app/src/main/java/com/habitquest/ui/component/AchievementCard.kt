@@ -20,22 +20,22 @@ fun AchievementCard(
     achievement: Achievement,
     modifier: Modifier = Modifier
 ) {
-    val borderColor = if (achievement.isUnlocked) Color(0xFF92400E) else Divider
+    val borderColor = if (achievement.isUnlocked) Amber.copy(alpha = 0.30f) else Divider.copy(alpha = 0.55f)
     val bgBrush = if (achievement.isUnlocked)
         androidx.compose.ui.graphics.Brush.linearGradient(
-            listOf(Color(0xFF1C1917), Color(0xFF292524))
+            listOf(Color.White.copy(alpha = 0.94f), Amber.copy(alpha = 0.16f))
         )
     else
         androidx.compose.ui.graphics.Brush.linearGradient(
-            listOf(Color(0xFF0F172A), Color(0xFF0F172A))
+            listOf(Color.White.copy(alpha = 0.72f), Divider.copy(alpha = 0.18f))
         )
 
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(bgBrush)
-            .border(1.dp, borderColor, RoundedCornerShape(14.dp))
-            .then(if (!achievement.isUnlocked) Modifier.graphicsLayer(alpha = 0.6f) else Modifier)
+            .border(1.dp, borderColor, RoundedCornerShape(22.dp))
+            .then(if (!achievement.isUnlocked) Modifier.graphicsLayer(alpha = 0.72f) else Modifier)
             .padding(14.dp)
     ) {
         Text(text = achievement.icon, fontSize = 26.sp)
@@ -43,7 +43,7 @@ fun AchievementCard(
         Text(
             text = achievement.name,
             style = AppTypography.titleMedium,
-            color = if (achievement.isUnlocked) Amber else TextDim
+            color = if (achievement.isUnlocked) TextPrimary else TextDim
         )
         Spacer(Modifier.height(3.dp))
         Text(

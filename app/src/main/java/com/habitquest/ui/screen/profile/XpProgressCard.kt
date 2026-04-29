@@ -40,9 +40,9 @@ fun XpProgressCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(CardBackground)
-            .border(1.dp, DividerLight, RoundedCornerShape(16.dp))
+            .border(1.dp, DividerLight, RoundedCornerShape(22.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {

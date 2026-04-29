@@ -38,12 +38,12 @@ val LocalThemeController = staticCompositionLocalOf {
 }
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Amber,
-    onPrimary = DarkPalette.background,
-    primaryContainer = DarkPalette.cardBackground,
+    primary = Purple,
+    onPrimary = DarkPalette.textPrimary,
+    primaryContainer = DarkPalette.cardBackground2,
     onPrimaryContainer = DarkPalette.textPrimary,
     secondary = Orange,
-    onSecondary = DarkPalette.background,
+    onSecondary = DarkPalette.textPrimary,
     tertiary = Rose,
     background = DarkPalette.background,
     onBackground = DarkPalette.textPrimary,
@@ -57,7 +57,7 @@ private val DarkColorScheme = darkColorScheme(
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Amber,
+    primary = Purple,
     onPrimary = LightPalette.textPrimary,
     primaryContainer = LightPalette.cardBackground2,
     onPrimaryContainer = LightPalette.textPrimary,
