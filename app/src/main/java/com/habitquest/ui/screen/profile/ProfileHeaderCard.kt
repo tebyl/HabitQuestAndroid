@@ -32,11 +32,11 @@ fun ProfileHeaderCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(24.dp))
             .background(
-                Brush.linearGradient(listOf(CardBackground, CardBackground2))
+                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.78f), Purple.copy(alpha = 0.10f)))
             )
-            .border(1.dp, DividerLight, RoundedCornerShape(20.dp))
+            .border(1.dp, Color.White.copy(alpha = 0.68f), RoundedCornerShape(24.dp))
             .padding(vertical = 24.dp, horizontal = 20.dp)
     ) {
         // Avatar with edit overlay
@@ -48,10 +48,10 @@ fun ProfileHeaderCard(
                     .clip(CircleShape)
                     .background(
                         Brush.linearGradient(
-                            listOf(rank.color.copy(alpha = 0.8f), Amber.copy(alpha = 0.6f))
+                            listOf(Purple.copy(alpha = 0.42f), Orange.copy(alpha = 0.24f))
                         )
                     )
-                    .border(3.dp, rank.color.copy(alpha = 0.7f), CircleShape)
+                    .border(3.dp, Color.White.copy(alpha = 0.82f), CircleShape)
                     .clickable { onEditAvatar() }
             ) {
                 Text(avatar, fontSize = 46.sp)
@@ -89,6 +89,14 @@ fun ProfileHeaderCard(
         }
 
         Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = "Tu progreso importa \u2728",
+            style = AppTypography.bodyMedium,
+            color = TextMuted
+        )
+
+        Spacer(Modifier.height(10.dp))
 
         // Level + Rank row
         Row(

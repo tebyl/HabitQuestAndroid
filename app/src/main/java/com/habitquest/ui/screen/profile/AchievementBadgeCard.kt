@@ -25,19 +25,19 @@ fun AchievementBadgeCard(
 
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(
                 if (unlocked)
-                    Brush.linearGradient(listOf(Color(0xFF1C1208), Color(0xFF2D1D04)))
+                    Brush.linearGradient(listOf(Amber.copy(alpha = 0.18f), Orange.copy(alpha = 0.12f)))
                 else
-                    Brush.linearGradient(listOf(CardBackground, CardBackground))
+                    Brush.linearGradient(listOf(Color.White.copy(alpha = 0.52f), CardBackground.copy(alpha = 0.42f)))
             )
             .border(
-                width = if (unlocked) 2.dp else 1.dp,
-                color = if (unlocked) Amber.copy(alpha = 0.6f) else DividerLight,
-                shape = RoundedCornerShape(14.dp)
+                width = 1.dp,
+                color = if (unlocked) Amber.copy(alpha = 0.24f) else DividerLight.copy(alpha = 0.28f),
+                shape = RoundedCornerShape(22.dp)
             )
-            .graphicsLayer { alpha = if (unlocked) 1f else 0.45f }
+            .graphicsLayer { alpha = if (unlocked) 1f else 0.56f }
             .padding(14.dp)
     ) {
         // Icon row with lock overlay when locked

@@ -25,9 +25,9 @@ fun StatCard(
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
-            .clip(RoundedCornerShape(14.dp))
-            .background(CardBackground)
-            .border(1.dp, Divider, RoundedCornerShape(14.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .background(valueColor.copy(alpha = 0.10f))
+            .border(1.dp, valueColor.copy(alpha = 0.12f), RoundedCornerShape(20.dp))
             .padding(vertical = 14.dp, horizontal = 10.dp)
     ) {
         Text(text = icon, fontSize = 22.sp)

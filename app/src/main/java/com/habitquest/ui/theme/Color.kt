@@ -20,17 +20,17 @@ data class AppColorPalette(
 )
 
 internal val DarkPalette = AppColorPalette(
-	background = Color(0xFF1C1917),
-	surface = Color(0xFF292524),
-	cardBackground = Color(0xFF292524),
-	cardBackground2 = Color(0xFF44403C),
-	divider = Color(0xFF292524),
-	dividerLight = Color(0xFF44403C),
-	textPrimary = Color(0xFFF9FAFB),
-	textSecondary = Color(0xFFE5E7EB),
-	textMuted = Color(0xFF9CA3AF),
-	textDim = Color(0xFF6B7280),
-	textDimmer = Color(0xFF4B5563),
+	background = Color(0xFF211B1C),
+	surface = Color(0xFF2C2426),
+	cardBackground = Color(0xFF2C2426),
+	cardBackground2 = Color(0xFF3B3134),
+	divider = Color(0xFF332A2D),
+	dividerLight = Color(0xFF4A3D41),
+	textPrimary = Color(0xFFFFF7F3),
+	textSecondary = Color(0xFFF0E4DF),
+	textMuted = Color(0xFFB9AAA3),
+	textDim = Color(0xFF927F78),
+	textDimmer = Color(0xFF6F5E59),
 )
 
 internal val LightPalette = AppColorPalette(
@@ -79,15 +79,15 @@ val DividerLight: Color
 	@ReadOnlyComposable
 	get() = LocalAppColors.current.dividerLight
 
-val Amber            = Color(0xFFF59E0B)
-val AmberDark        = Color(0xFFB45309)
-val Red              = Color(0xFFEF4444)
-val Emerald          = Color(0xFF84CC16) // Warmer Green (Lime)
-val EmeraldDark      = Color(0xFF4D7C0F) // Warmer Dark Green
-val Orange           = Color(0xFFF97316)
+val Amber            = Color(0xFFF7C873)
+val AmberDark        = Color(0xFFC98B3A)
+val Red              = Color(0xFFFF8A7A)
+val Emerald          = Color(0xFF7ED957)
+val EmeraldDark      = Color(0xFF5FAE45)
+val Orange           = Color(0xFFFF8A7A)
 val Rose             = Color(0xFFF43F5E)
-val Blue             = Color(0xFF3B82F6)
-val Purple           = Color(0xFF8B5CF6)
+val Blue             = Color(0xFF7BA7F5)
+val Purple           = Color(0xFFA78BFA)
 val Gray             = Color(0xFF6B7280)
 val WarmGray         = Color(0xFF78716C)
 

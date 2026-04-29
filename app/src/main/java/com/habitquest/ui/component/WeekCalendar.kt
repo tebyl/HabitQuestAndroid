@@ -12,6 +12,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.ui.theme.*
@@ -55,7 +56,7 @@ fun WeekCalendar(
                 text = if (weekOffset == 0) "Esta semana"
                        else "${startOfWeek.format(shortFmt)} – ${startOfWeek.plusDays(6).format(shortFmt)}",
                 style = AppTypography.labelSmall,
-                color = if (weekOffset == 0) Amber else TextDim,
+                color = if (weekOffset == 0) Purple else TextDim,
                 fontSize = 10.sp
             )
             Text(
@@ -73,10 +74,10 @@ fun WeekCalendar(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .clip(RoundedCornerShape(12.dp))
-                .background(CardBackground)
-                .border(1.dp, Divider, RoundedCornerShape(12.dp))
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .clip(RoundedCornerShape(20.dp))
+                .background(Color.White.copy(alpha = 0.55f))
+                .border(1.dp, DividerLight.copy(alpha = 0.35f), RoundedCornerShape(20.dp))
+                .padding(horizontal = 14.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             (0..6).forEach { offset ->
@@ -94,7 +95,7 @@ fun WeekCalendar(
                     Text(
                         text = dayLabel,
                         style = AppTypography.labelSmall,
-                        color = if (isToday) Amber else TextDim,
+                        color = if (isToday) Purple else TextDim,
                         fontSize = 10.sp
                     )
                     Box(
@@ -105,13 +106,13 @@ fun WeekCalendar(
                             .then(
                                 when {
                                     isActive -> Modifier.background(
-                                        Brush.linearGradient(listOf(Amber, Red))
+                                        Brush.linearGradient(listOf(Emerald.copy(alpha = 0.95f), Purple.copy(alpha = 0.72f)))
                                     )
                                     isToday  -> Modifier
-                                        .background(CardBackground2)
-                                        .border(2.dp, Amber, CircleShape)
-                                    isFuture -> Modifier.background(CardBackground)
-                                    else     -> Modifier.background(CardBackground2)
+                                        .background(Purple.copy(alpha = 0.18f))
+                                        .border(2.dp, Purple.copy(alpha = 0.55f), CircleShape)
+                                    isFuture -> Modifier.background(Color.White.copy(alpha = 0.32f))
+                                    else     -> Modifier.background(Color.White.copy(alpha = 0.55f))
                                 }
                             )
                     ) {
@@ -123,7 +124,7 @@ fun WeekCalendar(
                             },
                             color = when {
                                 isActive -> TextPrimary
-                                isToday  -> Amber
+                                isToday  -> Purple
                                 else     -> TextDimmer
                             },
                             fontSize = if (isActive) 12.sp else 10.sp

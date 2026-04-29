@@ -2,9 +2,9 @@
 
 <div align="center">
 
-## Build better habits through a lightweight RPG experience
+## A wellness companion for habits, routines, and gentle progress
 
-HabitQuest is an Android MVP for tracking habits and tasks with XP, levels, streaks, profile progression, and local offline persistence.
+HabitQuest is an Android MVP for tracking habits and tasks with a modern pastel wellness/lifestyle interface, emotional streaks, XP, levels, an evolution pet, and local offline persistence.
 
 <br />
 
@@ -21,35 +21,29 @@ HabitQuest is an Android MVP for tracking habits and tasks with XP, levels, stre
 
 ## Overview
 
-HabitQuest turns everyday habits and tasks into a simple gamified loop: create activities, complete them, gain XP, maintain streaks, level up, and review progress over time.
+HabitQuest turns everyday habits and tasks into a calm gamified loop: create activities, complete them, gain XP, maintain emotional streaks, level up, and review progress over time.
 
-The app is built as a local-first Android experience. Data is persisted with Room, the UI is written in Jetpack Compose with Material 3, and the project uses Hilt-backed MVVM screens.
+The app is built as a local-first Android experience with a pastel, modern, emotional wellness/lifestyle visual style. Data is persisted with Room, the UI is written in Jetpack Compose with Material 3, and the project uses Hilt-backed MVVM screens.
 
 ## Screenshots
 
 Place screenshots in `docs/screenshots/` using the following relative paths:
 
-| Home | Statistics | Profile |
+| Home Wellness | Evolution Pet | Statistics |
 |---|---|---|
-| ![Home](docs/screenshots/home.png) | ![Statistics](docs/screenshots/statistics.png) | ![Profile](docs/screenshots/profile.png) |
-
-| Evolution Pet |
-|---|
-| ![Evolution Pet](docs/screenshots/profile-pet.png) |
+| ![Home Wellness](docs/screenshots/home-wellness.png) | ![Evolution Pet](docs/screenshots/profile-pet.png) | ![Statistics](docs/screenshots/statistics.png) |
 
 ## Features
 
-- Habit creation with category, icon, frequency, validation, and XP preview.
-- Task creation with category selection and inline validation.
+- Habit and task creation with category selection, validation, and XP preview.
 - Complete and revert habits/tasks with XP updates.
 - Category-based habit XP policy and fixed task XP.
-- Daily habit reset support.
-- Streak, total completions, and XP feedback.
-- RPG-style profile with level, rank, avatar, and name editing.
+- Emotional streak system with soft milestones like Constancia, Ritmo, Flujo, and Habito real.
+- XP, levels, daily mission progress, and gentle completion feedback.
 - Evolution Pet System: a companion that evolves from Egg to Legend based on XP, level, streak, completed habits, and completed tasks.
-- Achievement badges with locked/unlocked states.
+- Profile screen with avatar, level, rank, evolution pet, stats, and achievement badges.
 - Statistics screen with weekly habit/task charts and category breakdown.
-- Empty state cards for key screens.
+- Pastel wellness UI with rounded cards, soft gradients, and a calm lifestyle feel.
 - Offline persistence with Room.
 - Bottom navigation across Home, Statistics, and Profile.
 

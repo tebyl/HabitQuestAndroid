@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
@@ -91,7 +92,11 @@ fun ProfileScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(Background),
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFFF5EDE6), Color(0xFFEFE3F5), Background)
+                )
+            ),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         // ── Page header ───────────────────────────────────────────
@@ -102,15 +107,20 @@ fun ProfileScreen(
                     .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
                 Text(
-                    text = "TU PERFIL",
+                    text = "TU ESPACIO",
                     style = AppTypography.labelSmall,
                     color = TextDim,
                     letterSpacing = 1.5.sp
                 )
                 Text(
-                    text = "Héroe",
+                    text = "Perfil",
                     style = AppTypography.headlineLarge,
                     color = TextPrimary
+                )
+                Text(
+                    text = "Tu progreso importa \u2728",
+                    style = AppTypography.bodyLarge,
+                    color = TextMuted
                 )
             }
         }

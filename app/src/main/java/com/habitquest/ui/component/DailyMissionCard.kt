@@ -35,32 +35,32 @@ fun DailyMissionCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(
                 Brush.linearGradient(
                     if (isAllDone)
-                        listOf(Color(0xFF365314), Color(0xFF3F6212))
+                        listOf(Color.White.copy(alpha = 0.92f), Emerald.copy(alpha = 0.12f))
                     else
-                        listOf(Color(0xFF1C1410), Color(0xFF2D1B00))
+                        listOf(Color.White.copy(alpha = 0.86f), Amber.copy(alpha = 0.08f))
                 )
             )
             .border(
                 1.dp,
-                if (isAllDone) Emerald.copy(alpha = 0.5f) else Amber.copy(alpha = 0.3f),
-                RoundedCornerShape(16.dp)
+                if (isAllDone) Emerald.copy(alpha = 0.24f) else Amber.copy(alpha = 0.18f),
+                RoundedCornerShape(22.dp)
             )
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Text(
-            text = if (isAllDone) "🏆" else "⚔️",
+            text = if (isAllDone) "\uD83C\uDF3F" else "\uD83C\uDFAF",
             fontSize = 28.sp
         )
 
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "MISIÓN DIARIA",
+                text = "MISION DIARIA",
                 style = AppTypography.labelSmall,
                 color = if (isAllDone) Emerald else Amber,
                 letterSpacing = 1.sp,
@@ -68,7 +68,7 @@ fun DailyMissionCard(
             )
             Spacer(Modifier.height(2.dp))
             Text(
-                text = if (isAllDone) "¡Día perfecto completado!" else "Completa todos tus hábitos",
+                text = if (isAllDone) "Dia perfecto completado" else "Completa tu ritual de hoy",
                 style = AppTypography.titleMedium,
                 color = TextPrimary
             )
@@ -79,7 +79,7 @@ fun DailyMissionCard(
                     .fillMaxWidth()
                     .height(5.dp)
                     .clip(RoundedCornerShape(3.dp))
-                    .background(Color(0x33F59E0B))
+                    .background(Emerald.copy(alpha = 0.14f))
             ) {
                 Box(
                     modifier = Modifier

@@ -37,12 +37,18 @@ fun EvolutionPetCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
-            .background(Brush.linearGradient(listOf(CardBackground, stageColor.copy(alpha = 0.14f))))
-            .border(1.dp, stageColor.copy(alpha = 0.35f), RoundedCornerShape(18.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp)
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.82f), Purple.copy(alpha = 0.14f))))
+            .border(1.dp, Color.White.copy(alpha = 0.72f), RoundedCornerShape(24.dp))
+            .padding(20.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        Text(
+            text = "Tu companera de viaje",
+            style = AppTypography.titleMedium,
+            color = TextPrimary
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -50,13 +56,13 @@ fun EvolutionPetCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(76.dp)
+                    .size(132.dp)
                     .clip(CircleShape)
-                    .background(stageColor.copy(alpha = 0.18f))
-                    .border(2.dp, stageColor.copy(alpha = 0.55f), CircleShape),
+                    .background(Brush.radialGradient(listOf(Color.White, stageColor.copy(alpha = 0.20f))))
+                    .border(2.dp, Color.White.copy(alpha = 0.82f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(text = petState.stage.icon, fontSize = 36.sp)
+                Text(text = petState.stage.icon, fontSize = 62.sp)
             }
 
             Column(modifier = Modifier.weight(1f)) {
@@ -65,7 +71,7 @@ fun EvolutionPetCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "COMPANERO",
+                        text = "ETAPA ${petState.stage.ordinal + 1} DE ${PetStage.entries.size}",
                         style = AppTypography.labelSmall,
                         color = stageColor,
                         letterSpacing = 1.sp,
@@ -141,10 +147,9 @@ fun EvolutionPetCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            PetMetric("Racha", "${petState.streak}d", if (petState.streakBonusActive) Amber else TextDim, Modifier.weight(1f))
+            PetMetric("XP total", "${petState.totalXP}", Purple, Modifier.weight(1f))
+            PetMetric("Mejor racha", "${petState.streak}d", Orange, Modifier.weight(1f))
             PetMetric("Habitos", petState.habitsCompleted.toString(), Emerald, Modifier.weight(1f))
-            PetMetric("Tareas", petState.tasksCompleted.toString(), Blue, Modifier.weight(1f))
-            PetMetric("Poder", petState.companionPower.toString(), stageColor, Modifier.weight(1f))
         }
     }
 }

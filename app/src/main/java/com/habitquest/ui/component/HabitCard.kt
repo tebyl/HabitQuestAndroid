@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
@@ -56,9 +57,14 @@ fun HabitCard(
         label = "xpOffset"
     )
     val scale by animateFloatAsState(
-        targetValue = if (pulseTarget) 1.15f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        targetValue = if (pulseTarget) 1.04f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow),
         label = "cardScale"
+    )
+    val completionAlpha by animateFloatAsState(
+        targetValue = if (habit.completedToday) 0.96f else 1f,
+        animationSpec = tween(260),
+        label = "habitCompletionFade"
     )
 
     LaunchedEffect(habit.completedToday) {
@@ -72,20 +78,21 @@ fun HabitCard(
     Box(
         modifier = modifier
             .scale(scale)
+            .alpha(completionAlpha)
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(22.dp))
             .background(
                 Brush.linearGradient(
                     if (habit.completedToday)
-                        listOf(Color(0xFF365314), Color(0xFF3F6212))
+                        listOf(Emerald.copy(alpha = 0.22f), CardBackground.copy(alpha = 0.96f))
                     else
-                        listOf(CardBackground, CardBackground2)
+                        listOf(CardBackground.copy(alpha = 0.96f), CardBackground2.copy(alpha = 0.72f))
                 )
             )
             .border(
                 1.dp,
-                if (habit.completedToday) Emerald else DividerLight,
-                RoundedCornerShape(16.dp)
+                if (habit.completedToday) Emerald.copy(alpha = 0.32f) else DividerLight.copy(alpha = 0.55f),
+                RoundedCornerShape(22.dp)
             )
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
@@ -112,16 +119,16 @@ fun HabitCard(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .size(44.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(16.dp))
                     .background(
-                        if (habit.completedToday) Color(0x3384CC16)
+                        if (habit.completedToday) Emerald.copy(alpha = 0.16f)
                         else categoryColor.copy(alpha = 0.12f)
                     )
                     .border(
                         1.dp,
-                        if (habit.completedToday) Color(0x6684CC16)
-                        else categoryColor.copy(alpha = 0.3f),
-                        RoundedCornerShape(12.dp)
+                        if (habit.completedToday) Emerald.copy(alpha = 0.28f)
+                        else categoryColor.copy(alpha = 0.22f),
+                        RoundedCornerShape(16.dp)
                     )
             ) {
                 Text(text = habit.icon, fontSize = 22.sp)

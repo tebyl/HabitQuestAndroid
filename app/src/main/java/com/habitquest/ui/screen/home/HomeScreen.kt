@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.habitquest.data.repository.HabitRepositoryImpl
+import com.habitquest.domain.gamification.resolvePetState
 import com.habitquest.domain.model.Levels
 import com.habitquest.ui.component.*
 import com.habitquest.ui.theme.*
@@ -59,8 +60,24 @@ fun HomeScreen(
     val pendingTasks   = state.tasks.filter { !it.isCompleted }
     val completedTasks = state.tasks.filter { it.isCompleted }
     val habitsAtRisk   = state.habits.filter { it.streakCount > 0 && !it.completedToday }
+    val currentStreak  = state.habits.maxOfOrNull { it.streakCount } ?: 0
+    val petState       = resolvePetState(
+        totalXP = state.totalXP,
+        level = state.currentLevel.level,
+        streak = currentStreak,
+        habitsCompleted = state.habits.sumOf { it.totalDays },
+        tasksCompleted = completedTasks.size
+    )
 
-    Box(modifier = Modifier.fillMaxSize().background(Background)) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    listOf(Color(0xFFF5EDE6), Color(0xFFEFE3F5), Background)
+                )
+            )
+    ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(bottom = 100.dp)
@@ -135,32 +152,85 @@ fun HomeScreen(
                 val completedCount = state.habits.count { it.completedToday }
                 val isComplete = completedCount == state.habits.size && state.habits.isNotEmpty()
 
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(Brush.linearGradient(listOf(CardBackground, CardBackground2)))
-                        .border(1.dp, DividerLight, RoundedCornerShape(20.dp))
-                        .padding(20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(20.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(
+                                    Color(0xFFFFF7F1).copy(alpha = 0.92f),
+                                    Purple.copy(alpha = 0.16f),
+                                    Orange.copy(alpha = 0.12f)
+                                )
+                            )
+                        )
+                        .border(1.dp, Color.White.copy(alpha = 0.68f), RoundedCornerShape(24.dp))
+                        .padding(horizontal = 22.dp, vertical = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    CircularProgressRing(
-                        completed = completedCount,
-                        total = state.habits.size.coerceAtLeast(1)
-                    )
-                    Column(modifier = Modifier.weight(1f)) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = when {
-                                isComplete     -> "¡Día perfecto! 🎉"
-                                completedCount == 0 -> "¡Empieza hoy!"
-                                else           -> "En progreso..."
+                                isComplete     -> "Vas increible hoy \u2728"
+                                completedCount == 0 -> "Un paso suave para empezar"
+                                else           -> "Tu dia va tomando forma"
                             },
                             style = AppTypography.titleLarge,
                             color = TextPrimary
                         )
-                        Spacer(Modifier.height(8.dp))
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "Pequenos pasos, grandes cambios",
+                            style = AppTypography.bodyMedium,
+                            color = TextMuted
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        HomeHeroMetric(
+                            label = state.currentLevel.name,
+                            value = "${state.currentLevel.level}",
+                            color = Purple,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Box(
+                            contentAlignment = Alignment.Center,
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp)
+                                .size(116.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.radialGradient(
+                                        listOf(Color.White.copy(alpha = 0.98f), Purple.copy(alpha = 0.18f))
+                                    )
+                                )
+                                .border(1.dp, Color.White.copy(alpha = 0.72f), CircleShape)
+                        ) {
+                            Text(text = petState.stage.icon, fontSize = 54.sp)
+                        }
+                        HomeHeroMetric(
+                            label = "dias",
+                            value = "$currentStreak",
+                            color = Orange,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(Color.White.copy(alpha = 0.58f))
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
                         XPBar(
                             currentXP = state.xpInCurrentLevel,
                             maxXP     = state.xpToNext,
@@ -170,7 +240,8 @@ fun HomeScreen(
                         val nextLevel = Levels.all
                             .find { it.level == state.currentLevel.level + 1 }
                         Text(
-                            text = "${state.currentLevel.name}${nextLevel?.let { " → ${it.name}" } ?: ""}",
+                            text = nextLevel?.let { "${(state.xpToNext - state.xpInCurrentLevel).coerceAtLeast(0)} XP para nivel ${it.level}" }
+                                ?: "Nivel maximo alcanzado",
                             style = AppTypography.labelSmall,
                             color = TextMuted
                         )
@@ -201,7 +272,6 @@ fun HomeScreen(
 
             // Daily streak reward
             item {
-                val currentStreak = state.habits.maxOfOrNull { it.streakCount } ?: 0
                 val bestStreak = state.habits.maxOfOrNull { it.streakCount } ?: 0
                 StreakRewardCard(
                     currentStreakDays = currentStreak,
@@ -421,6 +491,36 @@ fun HomeScreen(
             onDismiss  = viewModel::hideQuickAdd,
             onAddHabit = viewModel::createHabit,
             onAddTask  = viewModel::createTask
+        )
+    }
+}
+
+@Composable
+private fun HomeHeroMetric(
+    label: String,
+    value: String,
+    color: Color,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.58f))
+            .border(1.dp, color.copy(alpha = 0.14f), RoundedCornerShape(16.dp))
+            .padding(horizontal = 10.dp, vertical = 12.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = value,
+            style = AppTypography.labelLarge,
+            color = color,
+            fontSize = 11.sp
+        )
+        Text(
+            text = label,
+            style = AppTypography.labelSmall,
+            color = TextDim,
+            fontSize = 8.sp
         )
     }
 }

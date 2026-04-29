@@ -22,8 +22,8 @@ import androidx.compose.ui.unit.sp
 import com.habitquest.domain.model.Task
 import com.habitquest.ui.theme.*
 
-private val taskBg     = Color(0xFF1E1C1A)
-private val taskBgDone = Color(0xFF181614)
+private val taskBg     = Color(0xFFFFFFFF)
+private val taskBgDone = Color(0xFFF7FBF3)
 
 private val categoryColors = mapOf(
     "productividad"      to Color(0xFF3B82F6),
@@ -63,12 +63,12 @@ fun TaskCard(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(14.dp))
-            .background(bgColor)
+            .clip(RoundedCornerShape(20.dp))
+            .background(bgColor.copy(alpha = 0.72f))
             .border(
                 1.dp,
-                if (task.isCompleted) Color(0xFF2A2826) else Color(0xFF302E2C),
-                RoundedCornerShape(14.dp)
+                if (task.isCompleted) Emerald.copy(alpha = 0.22f) else DividerLight.copy(alpha = 0.32f),
+                RoundedCornerShape(20.dp)
             )
             .clickable {
                 if (task.isCompleted) onUncomplete?.invoke(task.id)
@@ -83,8 +83,8 @@ fun TaskCard(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(if (task.isCompleted) Emerald else Color.Transparent)
-                .border(2.dp, if (task.isCompleted) Emerald else TextDim, CircleShape)
+                .background(if (task.isCompleted) Emerald else Purple.copy(alpha = 0.10f))
+                .border(1.dp, if (task.isCompleted) Emerald else Purple.copy(alpha = 0.22f), CircleShape)
         ) {
             if (task.isCompleted) {
                 Text("✓", color = Color.White, fontSize = 14.sp)
@@ -113,8 +113,8 @@ fun TaskCard(
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Color(0x1A10B981))
-                    .border(1.dp, Color(0x2210B981), RoundedCornerShape(10.dp))
+                .background(Emerald.copy(alpha = 0.10f))
+                .border(1.dp, Emerald.copy(alpha = 0.16f), RoundedCornerShape(10.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
                 Text("⚡", fontSize = 10.sp)

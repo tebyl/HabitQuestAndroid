@@ -46,10 +46,10 @@ private data class StreakMilestone(
 )
 
 private val streakMilestones = listOf(
-    StreakMilestone(days = 3, reward = "Bronze", color = Orange),
-    StreakMilestone(days = 7, reward = "Silver", color = Blue),
-    StreakMilestone(days = 14, reward = "Gold", color = Amber),
-    StreakMilestone(days = 30, reward = "Legend", color = Purple)
+    StreakMilestone(days = 3, reward = "Constancia", color = Orange),
+    StreakMilestone(days = 7, reward = "Ritmo", color = Blue),
+    StreakMilestone(days = 14, reward = "Flujo", color = Amber),
+    StreakMilestone(days = 30, reward = "Plenitud", color = Purple)
 )
 
 @Composable
@@ -66,9 +66,9 @@ fun StreakRewardCard(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Brush.linearGradient(listOf(CardBackground, activeColor.copy(alpha = 0.12f))))
-            .border(1.dp, activeColor.copy(alpha = 0.35f), RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(24.dp))
+            .background(Brush.linearGradient(listOf(CardBackground.copy(alpha = 0.96f), activeColor.copy(alpha = 0.10f))))
+            .border(1.dp, activeColor.copy(alpha = 0.22f), RoundedCornerShape(24.dp))
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -96,7 +96,7 @@ fun StreakRewardCard(
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "RACHA DIARIA",
+                    text = "TU RITMO",
                     style = AppTypography.labelSmall,
                     color = activeColor,
                     letterSpacing = 1.sp,
@@ -104,14 +104,14 @@ fun StreakRewardCard(
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = nextMilestone?.let { "Proximo hito: ${it.days} dias" }
-                        ?: "Todos los hitos desbloqueados",
+                    text = nextMilestone?.let { "Un paso suave hacia ${it.reward}" }
+                        ?: "Tu constancia esta floreciendo",
                     style = AppTypography.titleMedium,
                     color = TextPrimary
                 )
                 Text(
-                    text = remainingDays?.let { "Faltan $it dias para ${nextMilestone.reward}" }
-                        ?: "Badge maximo: ${bestUnlocked?.reward ?: "Legend"}",
+                    text = remainingDays?.let { "$it dias mas para tu proximo momento" }
+                        ?: "Momento alcanzado: ${bestUnlocked?.reward ?: "Plenitud"}",
                     style = AppTypography.labelSmall,
                     color = TextDim,
                     fontSize = 11.sp
@@ -162,9 +162,9 @@ private fun StreakStat(
 ) {
     Column(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
+            .clip(RoundedCornerShape(18.dp))
             .background(CardBackground2.copy(alpha = 0.65f))
-            .border(1.dp, DividerLight, RoundedCornerShape(12.dp))
+            .border(1.dp, DividerLight.copy(alpha = 0.55f), RoundedCornerShape(18.dp))
             .padding(vertical = 10.dp, horizontal = 12.dp)
     ) {
         Text(
@@ -203,7 +203,7 @@ private fun StreakMilestoneChip(
             .background(color.copy(alpha = if (unlocked) 0.16f else 0.08f))
             .border(
                 width = 1.dp,
-                color = color.copy(alpha = if (isNext) 0.65f else 0.25f),
+                color = color.copy(alpha = if (isNext) 0.42f else 0.18f),
                 shape = RoundedCornerShape(12.dp)
             )
             .padding(vertical = 9.dp, horizontal = 4.dp)
@@ -232,7 +232,7 @@ private fun StreakMilestoneChip(
             textAlign = TextAlign.Center
         )
         Text(
-            text = if (unlocked) "ON" else "LOCK",
+            text = if (unlocked) "Logrado" else "Por abrir",
             style = AppTypography.labelSmall,
             color = if (unlocked) Emerald else TextDimmer,
             fontSize = 8.sp,
