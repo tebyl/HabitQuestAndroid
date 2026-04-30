@@ -3,6 +3,10 @@ package com.habitquest.ui.screen.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -31,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +43,7 @@ import com.habitquest.ui.theme.Amber
 import com.habitquest.ui.theme.AppTypography
 import com.habitquest.ui.theme.CardBackground2
 import com.habitquest.ui.theme.Divider
+import com.habitquest.ui.theme.Purple
 import com.habitquest.ui.theme.Red
 import com.habitquest.ui.theme.TextDim
 
@@ -76,53 +82,75 @@ fun CategorySelector(
     isError: Boolean = false,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        AppCategories.chunked(3).forEach { row ->
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        AppCategories.chunked(2).forEach { row ->
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 row.forEach { cat ->
                     val isSelected = selected == cat.key
+                    val scale = animateFloatAsState(
+                        targetValue = if (isSelected) 1.02f else 1f,
+                        animationSpec = tween(160),
+                        label = "categoryCardScale"
+                    )
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier
                             .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
+                            .graphicsLayer {
+                                scaleX = scale.value
+                                scaleY = scale.value
+                            }
+                            .clip(RoundedCornerShape(20.dp))
                             .background(
-                                if (isSelected) cat.color.copy(alpha = 0.20f) else CardBackground2
+                                if (isSelected) {
+                                    if (cat.key.contains("familia") || cat.key.contains("autocuidado")) {
+                                        cat.color.copy(alpha = 0.24f)
+                                    } else {
+                                        Purple.copy(alpha = 0.12f)
+                                    }
+                                } else {
+                                    CardBackground2.copy(alpha = 0.78f)
+                                }
                             )
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
                                 color = when {
-                                    isSelected -> cat.color.copy(alpha = 0.75f)
-                                    isError -> Red.copy(alpha = 0.5f)
+                                    isSelected -> cat.color.copy(alpha = 0.70f)
                                     else -> Divider
                                 },
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(20.dp)
                             )
                             .clickable { onSelect(cat.key) }
-                            .padding(vertical = 10.dp, horizontal = 4.dp)
+                            .padding(vertical = 16.dp, horizontal = 10.dp)
                     ) {
                         Icon(
                             imageVector = cat.icon,
                             contentDescription = cat.label,
                             tint = if (isSelected) cat.color else TextDim,
-                            modifier = Modifier.size(22.dp)
+                            modifier = Modifier.size(28.dp)
                         )
-                        Spacer(Modifier.height(4.dp))
+                        Spacer(Modifier.height(8.dp))
                         Text(
                             text = cat.label,
                             style = AppTypography.labelSmall,
-                            color = if (isSelected) cat.color else TextDim,
-                            fontSize = 9.sp,
+                            color = if (isSelected) Purple else TextDim,
+                            fontSize = 11.sp,
                             textAlign = TextAlign.Center
                         )
                     }
                 }
+                if (row.size == 1) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
             }
         }
-        if (isError) {
+        AnimatedVisibility(
+            visible = isError,
+            enter = fadeIn(tween(160))
+        ) {
             Text(
                 text = "Selecciona una categoria",
                 style = AppTypography.labelSmall,

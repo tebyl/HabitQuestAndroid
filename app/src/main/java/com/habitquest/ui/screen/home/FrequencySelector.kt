@@ -1,6 +1,7 @@
 package com.habitquest.ui.screen.home
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -18,14 +19,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.ui.theme.Amber
 import com.habitquest.ui.theme.AppTypography
-import com.habitquest.ui.theme.Background
 import com.habitquest.ui.theme.CardBackground2
 import com.habitquest.ui.theme.Divider
 import com.habitquest.ui.theme.Purple
@@ -34,8 +36,8 @@ import com.habitquest.ui.theme.TextDim
 import com.habitquest.ui.theme.TextMuted
 
 enum class HabitFrequency(val key: String, val label: String) {
-    DAILY("daily", "Todos los dias"),
-    SPECIFIC_DAYS("specific", "Dias especificos"),
+    DAILY("daily", "Todos los días"),
+    SPECIFIC_DAYS("specific", "Días específicos"),
     TIMES_PER_WEEK("times", "X veces por semana")
 }
 
@@ -66,7 +68,7 @@ fun FrequencySelector(
     onSelectTimesPerWeek: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "¿Cuándo quieres hacerlo?",
             style = AppTypography.labelSmall,
@@ -74,28 +76,39 @@ fun FrequencySelector(
             fontSize = 10.sp
         )
 
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(22.dp))
+                .background(CardBackground2.copy(alpha = 0.84f))
+                .padding(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
             HabitFrequency.entries.forEach { freq ->
                 val isSelected = selected == freq
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.02f else 1f,
+                    animationSpec = tween(150),
+                    label = "frequencyOptionScale"
+                )
                 Box(
-                    contentAlignment = Alignment.CenterStart,
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(if (isSelected) Purple.copy(alpha = 0.14f) else CardBackground2)
-                        .border(
-                            1.dp,
-                            if (isSelected) Purple.copy(alpha = 0.42f) else Divider,
-                            RoundedCornerShape(16.dp)
-                        )
+                        .weight(1f)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        }
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(if (isSelected) Purple.copy(alpha = 0.16f) else CardBackground2.copy(alpha = 0f))
                         .clickable { onSelectFrequency(freq) }
-                        .padding(horizontal = 14.dp, vertical = 11.dp)
+                        .padding(horizontal = 8.dp, vertical = 11.dp)
                 ) {
                     Text(
                         text = freq.label,
                         style = AppTypography.labelLarge,
                         color = if (isSelected) Purple else TextDim,
-                        fontSize = 12.sp
+                        fontSize = 10.sp
                     )
                 }
             }
@@ -105,18 +118,27 @@ fun FrequencySelector(
             visible = selected == HabitFrequency.SPECIFIC_DAYS,
             enter = fadeIn(tween(180)) + expandVertically(tween(180))
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     weekDays.forEach { (label, key, _) ->
                         val isOn = key in selectedDays
+                        val scale by animateFloatAsState(
+                            targetValue = if (isOn) 1.08f else 1f,
+                            animationSpec = tween(140),
+                            label = "dayChipScale"
+                        )
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
                                 .clip(CircleShape)
                                 .background(if (isOn) Amber.copy(alpha = 0.20f) else CardBackground2)
                                 .border(
@@ -137,7 +159,7 @@ fun FrequencySelector(
                 }
                 if (showValidationErrors && selectedDays.isEmpty()) {
                     Text(
-                        text = "Elige al menos un dia",
+                        text = "Elige al menos un día",
                         style = AppTypography.labelSmall,
                         color = Red,
                         fontSize = 11.sp
@@ -150,18 +172,27 @@ fun FrequencySelector(
             visible = selected == HabitFrequency.TIMES_PER_WEEK,
             enter = fadeIn(tween(180)) + expandVertically(tween(180))
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     (1..7).forEach { count ->
                         val isSelected = timesPerWeek == count
+                        val scale by animateFloatAsState(
+                            targetValue = if (isSelected) 1.08f else 1f,
+                            animationSpec = tween(140),
+                            label = "timesChipScale"
+                        )
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f)
+                                .graphicsLayer {
+                                    scaleX = scale
+                                    scaleY = scale
+                                }
                                 .clip(CircleShape)
                                 .background(if (isSelected) Amber.copy(alpha = 0.20f) else CardBackground2)
                                 .border(

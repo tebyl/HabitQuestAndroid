@@ -1,24 +1,44 @@
 package com.habitquest.ui.screen.home
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.SizeTransform
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CalendarMonth
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -34,10 +54,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -50,9 +73,11 @@ import com.habitquest.ui.theme.CardBackground
 import com.habitquest.ui.theme.CardBackground2
 import com.habitquest.ui.theme.Divider
 import com.habitquest.ui.theme.DividerLight
+import com.habitquest.ui.theme.Purple
 import com.habitquest.ui.theme.Red
 import com.habitquest.ui.theme.TextDim
 import com.habitquest.ui.theme.TextDimmer
+import com.habitquest.ui.theme.TextMuted
 import com.habitquest.ui.theme.TextPrimary
 import com.habitquest.ui.theme.TextSecondary
 import java.time.Instant
@@ -61,6 +86,12 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+
+private enum class TaskDateQuickChoice(val label: String) {
+    TODAY("Hoy"),
+    TOMORROW("Mañana"),
+    CUSTOM("Elegir fecha")
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,9 +106,12 @@ fun HabitCreateSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusRequester = remember { FocusRequester() }
+    val scrollState = rememberScrollState()
     val datePickerZone = remember { ZoneOffset.UTC }
     val dateFormatter = remember { DateTimeFormatter.ISO_LOCAL_DATE }
-    val displayDateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale("es")) }
+    val displayDateFormatter = remember {
+        DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale("es"))
+    }
 
     val editMode = editingHabit != null || editingTask != null
     val initialFrequency = remember(editingHabit?.frequency) {
@@ -102,18 +136,26 @@ fun HabitCreateSheet(
     var selectedDays by remember(editingHabit?.id) { mutableStateOf(initialFrequency.selectedDays) }
     var timesPerWeek by remember(editingHabit?.id) { mutableStateOf(initialFrequency.timesPerWeek) }
     var scheduledDate by remember(editingTask?.id) { mutableStateOf(initialScheduledDate) }
+    var dateQuickChoice by remember(editingTask?.id) {
+        mutableStateOf(
+            when (initialScheduledDate) {
+                LocalDate.now() -> TaskDateQuickChoice.TODAY
+                LocalDate.now().plusDays(1) -> TaskDateQuickChoice.TOMORROW
+                else -> TaskDateQuickChoice.CUSTOM
+            }
+        )
+    }
     var showDatePicker by remember { mutableStateOf(false) }
     var attemptedSave by remember { mutableStateOf(false) }
 
     val isHabit = tabIndex == 0
-    val nameError = name.isBlank()
-    val categoryError = selectedCategory == null
-    val frequencyError = isHabit && when (frequency) {
+    val nameError = attemptedSave && name.isBlank()
+    val categoryError = attemptedSave && selectedCategory == null
+    fun hasFrequencyError(): Boolean = isHabit && when (frequency) {
         HabitFrequency.SPECIFIC_DAYS -> selectedDays.isEmpty()
-        HabitFrequency.TIMES_PER_WEEK -> timesPerWeek < 1
+        HabitFrequency.TIMES_PER_WEEK -> timesPerWeek !in 1..7
         HabitFrequency.DAILY -> false
     }
-    val canAttemptSave = !nameError && !categoryError
 
     fun resetForm(nextTab: Int) {
         tabIndex = nextTab
@@ -123,6 +165,7 @@ fun HabitCreateSheet(
         selectedDays = emptySet()
         timesPerWeek = 1
         scheduledDate = LocalDate.now()
+        dateQuickChoice = TaskDateQuickChoice.TODAY
         attemptedSave = false
     }
 
@@ -131,7 +174,7 @@ fun HabitCreateSheet(
         val category = selectedCategory ?: return
         val trimmedName = name.trim()
         if (trimmedName.isBlank()) return
-        if (frequencyError) return
+        if (hasFrequencyError()) return
 
         if (isHabit) {
             val icon = AppCategories.firstOrNull { it.key == category }?.habitIcon ?: ""
@@ -159,7 +202,7 @@ fun HabitCreateSheet(
             Box(
                 modifier = Modifier
                     .padding(vertical = 10.dp)
-                    .size(width = 40.dp, height = 4.dp)
+                    .size(width = 42.dp, height = 4.dp)
                     .clip(RoundedCornerShape(2.dp))
                     .background(DividerLight)
             )
@@ -168,80 +211,70 @@ fun HabitCreateSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp)
+                .navigationBarsPadding()
                 .padding(bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(18.dp)
         ) {
-            Text(
-                text = when {
+            SheetHeader(
+                title = when {
                     editingHabit != null -> "Editar hábito"
                     editingTask != null -> "Editar tarea"
-                    else -> "CREAR"
+                    isHabit -> "Crear hábito"
+                    else -> "Crear tarea"
                 },
-                style = AppTypography.labelSmall,
-                color = TextDim,
-                letterSpacing = 1.5.sp
+                subtitle = if (isHabit) {
+                    "Diseña un pequeño ritual para tu día"
+                } else {
+                    "Organiza algo importante sin estrés"
+                }
             )
 
-            if (!editMode) {
-                Row(
+            TypeTabs(
+                selectedIndex = tabIndex,
+                editMode = editMode,
+                onSelect = { resetForm(it) }
+            )
+
+            SectionCard {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    isError = nameError,
+                    supportingText = {
+                        AnimatedVisibility(visible = nameError, enter = fadeIn(tween(150))) {
+                            Text("El nombre es obligatorio", color = Red, style = AppTypography.labelSmall)
+                        }
+                    },
+                    placeholder = {
+                        Text(
+                            if (isHabit) "Ej: Meditar 5 minutos" else "Ej: Agendar control médico",
+                            color = TextDimmer,
+                            style = AppTypography.bodyLarge
+                        )
+                    },
+                    singleLine = true,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(CardBackground2)
-                ) {
-                    listOf("Habito", "Tarea").forEachIndexed { index, label ->
-                        val selected = tabIndex == index
-                        TextButton(
-                            onClick = { resetForm(index) },
-                            modifier = Modifier
-                                .weight(1f)
-                                .clip(RoundedCornerShape(12.dp))
-                                .background(if (selected) Amber else CardBackground2),
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = if (selected) Background else TextDim
-                            )
-                        ) {
-                            Text(label, style = AppTypography.labelLarge, fontSize = 13.sp)
-                        }
-                    }
-                }
+                        .focusRequester(focusRequester),
+                    shape = RoundedCornerShape(18.dp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Purple.copy(alpha = 0.48f),
+                        unfocusedBorderColor = DividerLight.copy(alpha = 0.70f),
+                        errorBorderColor = Red.copy(alpha = 0.62f),
+                        focusedTextColor = TextPrimary,
+                        unfocusedTextColor = TextSecondary,
+                        cursorColor = Purple
+                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                    keyboardActions = KeyboardActions(onDone = { save() })
+                )
             }
 
-            OutlinedTextField(
-                value = name,
-                onValueChange = { name = it },
-                isError = nameError,
-                supportingText = {
-                    if (nameError) {
-                        Text("El nombre es obligatorio", color = Red, style = AppTypography.labelSmall)
-                    }
-                },
-                placeholder = {
-                    Text(
-                        if (isHabit) "Nombre del habito" else "Nombre de la tarea",
-                        color = TextDimmer,
-                        style = AppTypography.bodyLarge
-                    )
-                },
-                singleLine = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .focusRequester(focusRequester),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Amber,
-                    unfocusedBorderColor = Divider,
-                    errorBorderColor = Red,
-                    focusedTextColor = TextPrimary,
-                    unfocusedTextColor = TextSecondary,
-                    cursorColor = Amber
-                ),
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { if (canAttemptSave) save() })
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Categoria", style = AppTypography.labelSmall, color = TextDim, fontSize = 10.sp)
+            SectionCard(
+                title = "Categoría"
+            ) {
                 CategorySelector(
                     selected = selectedCategory.orEmpty(),
                     onSelect = { selectedCategory = it },
@@ -249,69 +282,53 @@ fun HabitCreateSheet(
                 )
             }
 
-            selectedCategory?.let { category ->
-                XpPreviewBadge(category = category, isTask = !isHabit)
-            }
-
-            if (isHabit) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Frecuencia", style = AppTypography.labelSmall, color = TextDim, fontSize = 10.sp)
-                    FrequencySelector(
-                        selected = frequency,
-                        selectedDays = selectedDays,
-                        timesPerWeek = timesPerWeek,
-                        showValidationErrors = attemptedSave,
-                        onSelectFrequency = { frequency = it },
-                        onToggleDay = { day ->
-                            selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
-                        },
-                        onSelectTimesPerWeek = { timesPerWeek = it }
-                    )
-                }
-            } else {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Fecha", style = AppTypography.labelSmall, color = TextDim, fontSize = 10.sp)
-                    OutlinedButton(
-                        onClick = { showDatePicker = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        border = BorderStroke(1.dp, Divider)
-                    ) {
-                        Text(
-                            text = scheduledDate.format(displayDateFormatter),
-                            color = TextSecondary,
-                            style = AppTypography.labelLarge
+            AnimatedContent(
+                targetState = isHabit,
+                transitionSpec = {
+                    (fadeIn(tween(180)) + slideInVertically(tween(180)) { it / 8 })
+                        .togetherWith(fadeOut(tween(140)) + slideOutVertically(tween(140)) { -it / 8 })
+                        .using(SizeTransform(clip = false))
+                },
+                label = "habitTaskMode"
+            ) { habitMode ->
+                if (habitMode) {
+                    SectionCard {
+                        FrequencySelector(
+                            selected = frequency,
+                            selectedDays = selectedDays,
+                            timesPerWeek = timesPerWeek,
+                            showValidationErrors = attemptedSave,
+                            onSelectFrequency = { frequency = it },
+                            onToggleDay = { day: String ->
+                                selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
+                            },
+                            onSelectTimesPerWeek = { timesPerWeek = it }
+                        )
+                    }
+                } else {
+                    SectionCard(title = "¿Para cuándo?") {
+                        TaskDateSelector(
+                            selected = dateQuickChoice,
+                            dateText = scheduledDate.format(displayDateFormatter)
+                                .replaceFirstChar { it.uppercase() },
+                            onSelect = { choice: TaskDateQuickChoice ->
+                                dateQuickChoice = choice
+                                when (choice) {
+                                    TaskDateQuickChoice.TODAY -> scheduledDate = LocalDate.now()
+                                    TaskDateQuickChoice.TOMORROW -> scheduledDate = LocalDate.now().plusDays(1)
+                                    TaskDateQuickChoice.CUSTOM -> showDatePicker = true
+                                }
+                            }
                         )
                     }
                 }
             }
 
-            Spacer(Modifier.height(2.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.weight(1f),
-                    border = BorderStroke(1.dp, Divider)
-                ) {
-                    Text("Cancelar", color = TextDim, style = AppTypography.labelLarge)
-                }
-                Button(
-                    onClick = ::save,
-                    enabled = canAttemptSave,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Amber,
-                        contentColor = Background,
-                        disabledContainerColor = Divider,
-                        disabledContentColor = TextDimmer
-                    )
-                ) {
-                    Text(if (editMode) "Guardar cambios" else "Guardar", style = AppTypography.labelLarge)
-                }
-            }
+            FooterButtons(
+                editMode = editMode,
+                onDismiss = onDismiss,
+                onSave = ::save
+            )
         }
     }
 
@@ -325,6 +342,7 @@ fun HabitCreateSheet(
                     onClick = {
                         datePickerState.selectedDateMillis?.let { millis ->
                             scheduledDate = Instant.ofEpochMilli(millis).atZone(datePickerZone).toLocalDate()
+                            dateQuickChoice = TaskDateQuickChoice.CUSTOM
                         }
                         showDatePicker = false
                     }
@@ -343,4 +361,210 @@ fun HabitCreateSheet(
     }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+}
+
+@Composable
+private fun SheetHeader(
+    title: String,
+    subtitle: String
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Text(
+            text = title,
+            style = AppTypography.headlineMedium,
+            color = TextPrimary
+        )
+        Text(
+            text = subtitle,
+            style = AppTypography.bodyMedium,
+            color = TextMuted
+        )
+    }
+}
+
+@Composable
+private fun TypeTabs(
+    selectedIndex: Int,
+    editMode: Boolean,
+    onSelect: (Int) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(CardBackground2.copy(alpha = 0.86f))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        listOf("Hábito", "Tarea").forEachIndexed { index, label ->
+            val selected = selectedIndex == index
+            val scale by animateFloatAsState(
+                targetValue = if (selected) 1.02f else 1f,
+                animationSpec = tween(150),
+                label = "typeTabScale"
+            )
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .weight(1f)
+                    .graphicsLayer {
+                        scaleX = scale
+                        scaleY = scale
+                    }
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(if (selected) Purple.copy(alpha = 0.16f) else Color.Transparent)
+                    .clickable(enabled = !editMode) { onSelect(index) }
+                    .padding(vertical = 12.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)
+                ) {
+                    if (selected) {
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = null,
+                            tint = Purple,
+                            modifier = Modifier.size(15.dp)
+                        )
+                    }
+                    Text(
+                        text = label,
+                        style = AppTypography.labelLarge,
+                        color = if (selected) Purple else TextDim,
+                        fontSize = 13.sp
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SectionCard(
+    modifier: Modifier = Modifier,
+    title: String? = null,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(CardBackground2.copy(alpha = 0.58f))
+            .border(1.dp, DividerLight.copy(alpha = 0.52f), RoundedCornerShape(24.dp))
+            .padding(14.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        title?.let {
+            Text(
+                text = it,
+                style = AppTypography.labelSmall,
+                color = TextMuted,
+                fontSize = 10.sp
+            )
+        }
+        content()
+    }
+}
+
+@Composable
+private fun TaskDateSelector(
+    selected: TaskDateQuickChoice,
+    dateText: String,
+    onSelect: (TaskDateQuickChoice) -> Unit
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TaskDateQuickChoice.entries.forEach { choice ->
+                val isSelected = selected == choice
+                val scale by animateFloatAsState(
+                    targetValue = if (isSelected) 1.03f else 1f,
+                    animationSpec = tween(150),
+                    label = "dateChipScale"
+                )
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .graphicsLayer {
+                            scaleX = scale
+                            scaleY = scale
+                        }
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(if (isSelected) Amber.copy(alpha = 0.18f) else CardBackground.copy(alpha = 0.72f))
+                        .border(
+                            1.dp,
+                            if (isSelected) Amber.copy(alpha = 0.54f) else Divider,
+                            RoundedCornerShape(18.dp)
+                        )
+                        .clickable { onSelect(choice) }
+                        .padding(horizontal = 8.dp, vertical = 11.dp)
+                ) {
+                    Text(
+                        text = choice.label,
+                        style = AppTypography.labelSmall,
+                        color = if (isSelected) Amber else TextDim,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(18.dp))
+                .background(Purple.copy(alpha = 0.08f))
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.CalendarMonth,
+                contentDescription = null,
+                tint = Purple,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = dateText,
+                style = AppTypography.bodyMedium,
+                color = TextSecondary
+            )
+        }
+    }
+}
+
+@Composable
+private fun FooterButtons(
+    editMode: Boolean,
+    onDismiss: () -> Unit,
+    onSave: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        OutlinedButton(
+            onClick = onDismiss,
+            modifier = Modifier.weight(1f),
+            border = BorderStroke(1.dp, DividerLight),
+            shape = RoundedCornerShape(18.dp)
+        ) {
+            Text("Cancelar", color = TextDim, style = AppTypography.labelLarge)
+        }
+        Button(
+            onClick = onSave,
+            modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(18.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Amber,
+                contentColor = Background
+            )
+        ) {
+            Text(if (editMode) "Guardar cambios" else "Crear", style = AppTypography.labelLarge)
+        }
+    }
 }
