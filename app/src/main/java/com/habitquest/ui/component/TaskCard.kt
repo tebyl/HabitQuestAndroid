@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.domain.model.Task
 import com.habitquest.ui.screen.home.categoryColor
+import com.habitquest.ui.screen.home.categoryIconFor
 import com.habitquest.ui.screen.home.categoryLabel
 import com.habitquest.ui.theme.AppTypography
 import com.habitquest.ui.theme.CardBackground
@@ -67,6 +68,7 @@ fun TaskCard(
     modifier: Modifier = Modifier
 ) {
     val catColor = categoryColor(task.category)
+    val categoryIcon = categoryIconFor(task.category)
     val scheduledDate = remember(task.scheduledDate) {
         task.scheduledDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
     }
@@ -111,6 +113,13 @@ fun TaskCard(
         ) {
             if (task.isCompleted) {
                 Text("✓", color = Color.White, fontSize = 14.sp)
+            } else {
+                Icon(
+                    imageVector = categoryIcon,
+                    contentDescription = null,
+                    tint = catColor,
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
 

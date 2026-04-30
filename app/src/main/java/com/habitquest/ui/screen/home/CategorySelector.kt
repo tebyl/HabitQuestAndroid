@@ -17,11 +17,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.MenuBook
 import androidx.compose.material.icons.rounded.Checklist
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FitnessCenter
 import androidx.compose.material.icons.rounded.HealthAndSafety
-import androidx.compose.material.icons.rounded.MenuBook
 import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.SelfImprovement
 import androidx.compose.material.icons.rounded.Spa
@@ -39,13 +39,15 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.habitquest.ui.theme.Amber
 import com.habitquest.ui.theme.AppTypography
 import com.habitquest.ui.theme.CardBackground2
 import com.habitquest.ui.theme.Divider
 import com.habitquest.ui.theme.Purple
 import com.habitquest.ui.theme.Red
 import com.habitquest.ui.theme.TextDim
+import java.text.Normalizer
+
+private val CategoryFallbackColor = Color(0xFFD8C8FF)
 
 data class CategoryItem(
     val key: String,
@@ -57,23 +59,43 @@ data class CategoryItem(
 
 val AppCategories = listOf(
     CategoryItem("salud_mental", "Salud Mental", Icons.Rounded.SelfImprovement, Color(0xFFC8B6FF)),
-    CategoryItem("salud_fisica", "Salud Fisica", Icons.Rounded.FitnessCenter, Color(0xFFA8E6CF)),
-    CategoryItem("desarrollo", "Desarrollo", Icons.Rounded.MenuBook, Color(0xFFA7C7E7)),
+    CategoryItem("salud_fisica", "Salud Física", Icons.Rounded.FitnessCenter, Color(0xFFA8E6CF)),
+    CategoryItem("desarrollo", "Desarrollo", Icons.AutoMirrored.Rounded.MenuBook, Color(0xFFA7C7E7)),
     CategoryItem("productividad", "Productividad", Icons.Rounded.TrackChanges, Color(0xFFFFD6A5)),
     CategoryItem("vida_diaria", "Vida Diaria", Icons.Rounded.Checklist, Color(0xFFFFADAD)),
-    CategoryItem("gamificacion", "Gamificacion", Icons.Rounded.SportsEsports, Color(0xFFFFE7A0)),
+    CategoryItem("gamificacion", "Gamificación", Icons.Rounded.SportsEsports, Color(0xFFFFE7A0)),
     CategoryItem("espiritualidad", "Espiritualidad", Icons.Rounded.SelfImprovement, Color(0xFFD8C8FF)),
     CategoryItem("autocuidado", "Autocuidado", Icons.Rounded.Spa, Color(0xFFFFC8DD)),
-    CategoryItem("familia_corazon", "Familia / Corazon", Icons.Rounded.Favorite, Color(0xFFFFB3C6)),
-    CategoryItem("mama_colegio", "Mama / Colegio", Icons.Rounded.School, Color(0xFFBDE0FE)),
+    CategoryItem("familia_corazon", "Familia / Corazón", Icons.Rounded.Favorite, Color(0xFFFFB3C6)),
+    CategoryItem("mama_colegio", "Mamá / Colegio", Icons.Rounded.School, Color(0xFFBDE0FE)),
     CategoryItem("salud", "Salud", Icons.Rounded.HealthAndSafety, Color(0xFFCDEAC0)),
 )
 
-fun categoryItem(category: String): CategoryItem? = AppCategories.firstOrNull { it.key == category }
+private fun categoryToken(category: String): String {
+    val withoutAccents = Normalizer.normalize(category.trim(), Normalizer.Form.NFD)
+        .replace(Regex("\\p{Mn}+"), "")
+    return withoutAccents
+        .lowercase()
+        .replace(Regex("[^a-z0-9]+"), "_")
+        .trim('_')
+}
 
-fun categoryColor(category: String): Color = categoryItem(category)?.color ?: Amber
+fun categoryItem(category: String): CategoryItem? {
+    val normalized = categoryToken(category)
+    return AppCategories.firstOrNull {
+        it.key == normalized || categoryToken(it.label) == normalized
+    }
+}
 
-fun categoryLabel(category: String): String = categoryItem(category)?.label ?: category
+fun categoryIconFor(category: String): ImageVector =
+    categoryItem(category)?.icon ?: Icons.Rounded.Favorite
+
+fun categoryColorFor(category: String): Color =
+    categoryItem(category)?.color ?: CategoryFallbackColor
+
+fun categoryColor(category: String): Color = categoryColorFor(category)
+
+fun categoryLabel(category: String): String = categoryItem(category)?.label ?: category.ifBlank { "Categoria" }
 
 @Composable
 fun CategorySelector(

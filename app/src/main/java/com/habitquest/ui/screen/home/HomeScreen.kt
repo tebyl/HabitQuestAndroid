@@ -74,7 +74,7 @@ fun HomeScreen(
         .toSet()
 
     val pendingTasks   = pendingTasksForHome(state.tasks)
-    val completedTasks = state.tasks.filter { it.isCompleted }
+    val completedTaskCount = state.tasks.count { it.isCompleted }
     val habitsAtRisk   = state.habits.filter { it.streakCount > 0 && !it.completedToday }
     val isHomeEmpty    = shouldShowHomeEmptyState(state.habits, state.tasks)
     val currentStreak  = state.habits.maxOfOrNull { it.streakCount } ?: 0
@@ -412,7 +412,7 @@ fun HomeScreen(
                     ) {
                         if (state.tasks.isNotEmpty()) {
                             Text(
-                                text = "${completedTasks.size}/${state.tasks.size}",
+                                text = "$completedTaskCount/${state.tasks.size}",
                                 style = AppTypography.labelSmall,
                                 color = TextDim,
                                 fontSize = 11.sp

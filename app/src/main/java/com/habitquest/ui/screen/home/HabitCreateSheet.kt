@@ -86,7 +86,7 @@ import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
 
-private enum class SheetItemType {
+private enum class SheetMode {
     HABIT,
     TASK
 }
@@ -127,8 +127,8 @@ fun HabitCreateSheet(
             ?: LocalDate.now()
     }
 
-    var selectedType by remember(editingHabit?.id, editingTask?.id) {
-        mutableStateOf(if (editingTask != null) SheetItemType.TASK else SheetItemType.HABIT)
+    var mode by remember(editingHabit?.id, editingTask?.id) {
+        mutableStateOf(if (editingTask != null) SheetMode.TASK else SheetMode.HABIT)
     }
     var name by remember(editingHabit?.id, editingTask?.id) {
         mutableStateOf(editingHabit?.name ?: editingTask?.name ?: "")
@@ -152,7 +152,7 @@ fun HabitCreateSheet(
     var showDatePicker by remember { mutableStateOf(false) }
     var attemptedSave by remember { mutableStateOf(false) }
 
-    val isHabit = selectedType == SheetItemType.HABIT
+    val isHabit = mode == SheetMode.HABIT
     val nameError = attemptedSave && name.isBlank()
     val categoryError = attemptedSave && selectedCategory == null
     fun hasFrequencyError(): Boolean = isHabit && when (frequency) {
@@ -161,8 +161,8 @@ fun HabitCreateSheet(
         HabitFrequency.DAILY -> false
     }
 
-    fun resetForm(nextType: SheetItemType) {
-        selectedType = nextType
+    fun resetForm(nextMode: SheetMode) {
+        mode = nextMode
         name = ""
         selectedCategory = null
         frequency = HabitFrequency.DAILY
@@ -180,20 +180,23 @@ fun HabitCreateSheet(
         if (trimmedName.isBlank()) return
         if (hasFrequencyError()) return
 
-        if (isHabit) {
-            val icon = AppCategories.firstOrNull { it.key == category }?.habitIcon ?: ""
-            val frequencyText = buildFrequencyString(frequency, selectedDays, timesPerWeek)
-            if (editingHabit != null) {
-                onUpdateHabit(editingHabit.id, trimmedName, category, frequencyText)
-            } else {
-                onAddHabit(trimmedName, icon, category, frequencyText)
+        when (mode) {
+            SheetMode.HABIT -> {
+                val icon = AppCategories.firstOrNull { it.key == category }?.habitIcon ?: ""
+                val frequencyText = buildFrequencyString(frequency, selectedDays, timesPerWeek)
+                if (editingHabit != null) {
+                    onUpdateHabit(editingHabit.id, trimmedName, category, frequencyText)
+                } else {
+                    onAddHabit(trimmedName, icon, category, frequencyText)
+                }
             }
-        } else {
-            val scheduledDateText = scheduledDate.format(dateFormatter)
-            if (editingTask != null) {
-                onUpdateTask(editingTask.id, trimmedName, category, scheduledDateText)
-            } else {
-                onAddTask(trimmedName, category, scheduledDateText)
+            SheetMode.TASK -> {
+                val scheduledDateText = scheduledDate.format(dateFormatter)
+                if (editingTask != null) {
+                    onUpdateTask(editingTask.id, trimmedName, category, scheduledDateText)
+                } else {
+                    onAddTask(trimmedName, category, scheduledDateText)
+                }
             }
         }
     }
@@ -236,7 +239,7 @@ fun HabitCreateSheet(
             )
 
             TypeTabs(
-                selectedType = selectedType,
+                mode = mode,
                 editMode = editMode,
                 onSelect = { resetForm(it) }
             )
@@ -388,9 +391,9 @@ private fun SheetHeader(
 
 @Composable
 private fun TypeTabs(
-    selectedType: SheetItemType,
+    mode: SheetMode,
     editMode: Boolean,
-    onSelect: (SheetItemType) -> Unit
+    onSelect: (SheetMode) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -400,8 +403,8 @@ private fun TypeTabs(
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        listOf(SheetItemType.HABIT to "Hábito", SheetItemType.TASK to "Tarea").forEach { (type, label) ->
-            val selected = selectedType == type
+        listOf(SheetMode.HABIT to "Hábito", SheetMode.TASK to "Tarea").forEach { (tabMode, label) ->
+            val selected = mode == tabMode
             val scale by animateFloatAsState(
                 targetValue = if (selected) 1.02f else 1f,
                 animationSpec = tween(150),
@@ -417,7 +420,7 @@ private fun TypeTabs(
                     }
                     .clip(RoundedCornerShape(20.dp))
                     .background(if (selected) Purple.copy(alpha = 0.16f) else Color.Transparent)
-                    .clickable(enabled = !editMode) { onSelect(type) }
+                    .clickable(enabled = !editMode) { onSelect(tabMode) }
                     .padding(vertical = 12.dp)
             ) {
                 Row(

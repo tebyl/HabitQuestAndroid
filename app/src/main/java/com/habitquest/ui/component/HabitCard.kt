@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.domain.model.Habit
 import com.habitquest.ui.screen.home.categoryColor
+import com.habitquest.ui.screen.home.categoryIconFor
 import com.habitquest.ui.screen.home.categoryLabel
 import com.habitquest.ui.theme.Amber
 import com.habitquest.ui.theme.AppTypography
@@ -74,6 +75,7 @@ fun HabitCard(
     modifier: Modifier = Modifier
 ) {
     val categoryColor = categoryColor(habit.category)
+    val categoryIcon = categoryIconFor(habit.category)
     val scope = rememberCoroutineScope()
     var showXP by remember { mutableStateOf(false) }
     var pulseTarget by remember { mutableStateOf(false) }
@@ -164,7 +166,12 @@ fun HabitCard(
                         RoundedCornerShape(16.dp)
                     )
             ) {
-                Text(text = habit.icon, fontSize = 22.sp)
+                Icon(
+                    imageVector = categoryIcon,
+                    contentDescription = null,
+                    tint = if (habit.completedToday) Emerald else categoryColor,
+                    modifier = Modifier.size(24.dp)
+                )
             }
 
             Column(modifier = Modifier.weight(1f)) {

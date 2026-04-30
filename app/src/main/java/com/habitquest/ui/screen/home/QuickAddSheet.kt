@@ -25,23 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.ui.theme.*
 
-private val categories = listOf(
-    "salud_mental"  to "Salud Mental",
-    "salud_fisica"  to "Salud Física",
-    "desarrollo"    to "Desarrollo",
-    "productividad" to "Productividad",
-    "vida_diaria"   to "Vida Diaria",
-    "gamificacion"  to "Gamificación",
-)
-
-private val categoryColors = mapOf(
-    "salud_mental"  to Purple,
-    "salud_fisica"  to Emerald,
-    "desarrollo"    to Blue,
-    "productividad" to Amber,
-    "vida_diaria"   to Orange,
-    "gamificacion"  to Rose,
-)
+private enum class QuickAddMode {
+    HABIT,
+    TASK
+}
 
 private val habitIcons = listOf(
     "🧘", "💪", "📖", "💧", "📋", "🏃",
@@ -57,7 +44,7 @@ fun QuickAddSheet(
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    var tabIndex      by remember { mutableIntStateOf(0) }
+    var mode          by remember { mutableStateOf(QuickAddMode.HABIT) }
     var name          by remember { mutableStateOf("") }
     var selectedCat   by remember { mutableStateOf("salud_mental") }
     var selectedIcon  by remember { mutableStateOf("🧘") }
@@ -99,8 +86,8 @@ fun QuickAddSheet(
                     .background(CardBackground2),
                 horizontalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                listOf("Hábito", "Tarea").forEachIndexed { i, label ->
-                    val selected = tabIndex == i
+                listOf(QuickAddMode.HABIT to "Hábito", QuickAddMode.TASK to "Tarea").forEach { (tabMode, label) ->
+                    val selected = mode == tabMode
                     Box(
                         contentAlignment = Alignment.Center,
                         modifier = Modifier
@@ -108,7 +95,7 @@ fun QuickAddSheet(
                             .clip(RoundedCornerShape(12.dp))
                             .background(if (selected) Amber else CardBackground2)
                             .clickable {
-                                tabIndex = i
+                                mode = tabMode
                                 name = ""
                                 selectedCat = "salud_mental"
                                 selectedIcon = "🧘"
@@ -131,7 +118,7 @@ fun QuickAddSheet(
                 onValueChange = { name = it },
                 placeholder = {
                     Text(
-                        if (tabIndex == 0) "Nombre del hábito" else "Nombre de la tarea",
+                        if (mode == QuickAddMode.HABIT) "Nombre del hábito" else "Nombre de la tarea",
                         color = TextDimmer, style = AppTypography.bodyLarge
                     )
                 },
@@ -147,8 +134,10 @@ fun QuickAddSheet(
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = {
                     if (name.isNotBlank()) {
-                        if (tabIndex == 0) onAddHabit(name, selectedIcon, selectedCat)
-                        else onAddTask(name, selectedCat)
+                        when (mode) {
+                            QuickAddMode.HABIT -> onAddHabit(name, selectedIcon, selectedCat)
+                            QuickAddMode.TASK -> onAddTask(name, selectedCat)
+                        }
                     }
                 })
             )
@@ -157,9 +146,9 @@ fun QuickAddSheet(
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text("Categoría", style = AppTypography.labelSmall, color = TextDim, fontSize = 10.sp)
                 LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    items(categories) { (key, label) ->
-                        val isSelected = selectedCat == key
-                        val catColor   = categoryColors[key] ?: Amber
+                    items(AppCategories) { category ->
+                        val isSelected = selectedCat == category.key
+                        val catColor   = categoryColorFor(category.key)
                         Box(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
@@ -169,11 +158,11 @@ fun QuickAddSheet(
                                     if (isSelected) catColor.copy(alpha = 0.5f) else Divider,
                                     RoundedCornerShape(20.dp)
                                 )
-                                .clickable { selectedCat = key }
+                                .clickable { selectedCat = category.key }
                                 .padding(horizontal = 14.dp, vertical = 7.dp)
                         ) {
                             Text(
-                                text = label,
+                                text = category.label,
                                 style = AppTypography.labelSmall,
                                 color = if (isSelected) catColor else TextDim,
                                 fontSize = 11.sp
@@ -184,7 +173,7 @@ fun QuickAddSheet(
             }
 
             // Icon grid (habits only)
-            if (tabIndex == 0) {
+            if (mode == QuickAddMode.HABIT) {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text("Icono", style = AppTypography.labelSmall, color = TextDim, fontSize = 10.sp)
                     LazyVerticalGrid(
@@ -230,8 +219,10 @@ fun QuickAddSheet(
                 Button(
                     onClick = {
                         if (name.isNotBlank()) {
-                            if (tabIndex == 0) onAddHabit(name, selectedIcon, selectedCat)
-                            else onAddTask(name, selectedCat)
+                            when (mode) {
+                                QuickAddMode.HABIT -> onAddHabit(name, selectedIcon, selectedCat)
+                                QuickAddMode.TASK -> onAddTask(name, selectedCat)
+                            }
                         }
                     },
                     enabled = name.isNotBlank(),

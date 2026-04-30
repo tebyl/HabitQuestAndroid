@@ -198,10 +198,48 @@ class HabitRepositoryImplTest {
 
         assertEquals(emptyList<com.habitquest.domain.model.Task>(), repository.getTasks().first())
     }
+
+    @Test
+    fun addTask_doesNotCreateHabit() = runBlocking {
+        val habitDao = FakeHabitDao()
+        val taskDao = FakeTaskDao()
+        val repository = HabitRepositoryImpl(habitDao, FakeUserStatsDao(UserStatsEntity()), taskDao)
+
+        repository.addTask(
+            com.habitquest.domain.model.Task(
+                name = "Agenda",
+                category = "mama_colegio",
+                scheduledDate = "2026-04-30"
+            )
+        )
+
+        assertEquals(0, repository.getHabits().first().size)
+        assertEquals(1, repository.getTasks().first().size)
+    }
+
+    @Test
+    fun addHabit_doesNotCreateTask() = runBlocking {
+        val habitDao = FakeHabitDao()
+        val taskDao = FakeTaskDao()
+        val repository = HabitRepositoryImpl(habitDao, FakeUserStatsDao(UserStatsEntity()), taskDao)
+
+        repository.addHabit(
+            com.habitquest.domain.model.Habit(
+                name = "Leer",
+                icon = "",
+                category = "desarrollo"
+            )
+        )
+
+        assertEquals(1, repository.getHabits().first().size)
+        assertEquals(0, repository.getTasks().first().size)
+    }
 }
 
-private class FakeHabitDao(initialHabit: HabitEntity) : HabitDao {
-    private val habits = linkedMapOf(initialHabit.id to initialHabit)
+private class FakeHabitDao(initialHabit: HabitEntity? = null) : HabitDao {
+    private val habits = linkedMapOf<Long, HabitEntity>().apply {
+        initialHabit?.let { put(it.id, it) }
+    }
     private val habitsFlow = MutableStateFlow(habits.values.toList())
 
     override fun getAllHabits(): Flow<List<HabitEntity>> = habitsFlow
