@@ -50,7 +50,6 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -86,6 +85,11 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
+
+private enum class SheetItemType {
+    HABIT,
+    TASK
+}
 
 private enum class TaskDateQuickChoice(val label: String) {
     TODAY("Hoy"),
@@ -123,8 +127,8 @@ fun HabitCreateSheet(
             ?: LocalDate.now()
     }
 
-    var tabIndex by remember(editingHabit?.id, editingTask?.id) {
-        mutableIntStateOf(if (editingTask != null) 1 else 0)
+    var selectedType by remember(editingHabit?.id, editingTask?.id) {
+        mutableStateOf(if (editingTask != null) SheetItemType.TASK else SheetItemType.HABIT)
     }
     var name by remember(editingHabit?.id, editingTask?.id) {
         mutableStateOf(editingHabit?.name ?: editingTask?.name ?: "")
@@ -148,7 +152,7 @@ fun HabitCreateSheet(
     var showDatePicker by remember { mutableStateOf(false) }
     var attemptedSave by remember { mutableStateOf(false) }
 
-    val isHabit = tabIndex == 0
+    val isHabit = selectedType == SheetItemType.HABIT
     val nameError = attemptedSave && name.isBlank()
     val categoryError = attemptedSave && selectedCategory == null
     fun hasFrequencyError(): Boolean = isHabit && when (frequency) {
@@ -157,8 +161,8 @@ fun HabitCreateSheet(
         HabitFrequency.DAILY -> false
     }
 
-    fun resetForm(nextTab: Int) {
-        tabIndex = nextTab
+    fun resetForm(nextType: SheetItemType) {
+        selectedType = nextType
         name = ""
         selectedCategory = null
         frequency = HabitFrequency.DAILY
@@ -232,7 +236,7 @@ fun HabitCreateSheet(
             )
 
             TypeTabs(
-                selectedIndex = tabIndex,
+                selectedType = selectedType,
                 editMode = editMode,
                 onSelect = { resetForm(it) }
             )
@@ -384,9 +388,9 @@ private fun SheetHeader(
 
 @Composable
 private fun TypeTabs(
-    selectedIndex: Int,
+    selectedType: SheetItemType,
     editMode: Boolean,
-    onSelect: (Int) -> Unit
+    onSelect: (SheetItemType) -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -396,8 +400,8 @@ private fun TypeTabs(
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        listOf("Hábito", "Tarea").forEachIndexed { index, label ->
-            val selected = selectedIndex == index
+        listOf(SheetItemType.HABIT to "Hábito", SheetItemType.TASK to "Tarea").forEach { (type, label) ->
+            val selected = selectedType == type
             val scale by animateFloatAsState(
                 targetValue = if (selected) 1.02f else 1f,
                 animationSpec = tween(150),
@@ -413,7 +417,7 @@ private fun TypeTabs(
                     }
                     .clip(RoundedCornerShape(20.dp))
                     .background(if (selected) Purple.copy(alpha = 0.16f) else Color.Transparent)
-                    .clickable(enabled = !editMode) { onSelect(index) }
+                    .clickable(enabled = !editMode) { onSelect(type) }
                     .padding(vertical = 12.dp)
             ) {
                 Row(
