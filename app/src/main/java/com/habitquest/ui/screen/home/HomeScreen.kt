@@ -342,17 +342,6 @@ fun HomeScreen(
             }
 
             // ── Hábitos section ────────────────────────────────────
-            item {
-                Text(
-                    text = "HÁBITOS",
-                    style = AppTypography.labelSmall,
-                    color = TextMuted,
-                    letterSpacing = 1.5.sp,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(Modifier.height(10.dp))
-            }
-
             if (isHomeEmpty) {
                 item {
                     EmptyStateCard(
@@ -365,17 +354,17 @@ fun HomeScreen(
                 }
             }
 
-            if (state.habits.isEmpty() && !isHomeEmpty) {
+            if (state.habits.isNotEmpty()) {
                 item {
-                    EmptyStateCard(
-                        icon     = "🌱",
-                        title    = "Sin hábitos aún",
-                        subtitle = "Toca + para agregar tu primer hábito",
+                    Text(
+                        text = "HÁBITOS",
+                        style = AppTypography.labelSmall,
+                        color = TextMuted,
+                        letterSpacing = 1.5.sp,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(10.dp))
                 }
-            } else {
                 items(state.habits, key = { it.id }) { habit ->
                     val xpGain = HabitRepositoryImpl.xpForCategory(habit.category) +
                         if (habit.streakCount >= HabitRepositoryImpl.STREAK_BONUS_THRESHOLD)
@@ -401,6 +390,7 @@ fun HomeScreen(
             }
 
             // ── Tareas section ─────────────────────────────────────
+            if (!isHomeEmpty) {
             item {
                 Spacer(Modifier.height(8.dp))
                 Row(
@@ -456,7 +446,7 @@ fun HomeScreen(
                 Spacer(Modifier.height(10.dp))
             }
 
-            if (pendingTasks.isEmpty() && !isHomeEmpty) {
+            if (pendingTasks.isEmpty()) {
                 item {
                     EmptyStateCard(
                         icon     = "✓",
@@ -485,6 +475,7 @@ fun HomeScreen(
                     }
                     Spacer(Modifier.height(8.dp))
                 }
+            }
             }
         }
 
