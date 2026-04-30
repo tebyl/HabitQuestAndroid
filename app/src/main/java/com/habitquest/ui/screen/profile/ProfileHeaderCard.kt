@@ -1,5 +1,6 @@
 package com.habitquest.ui.screen.profile
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -13,9 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.domain.model.Level
+import com.habitquest.ui.component.userAvatarResOrDefault
 import com.habitquest.ui.theme.*
 
 @Composable
@@ -41,21 +45,17 @@ fun ProfileHeaderCard(
     ) {
         // Avatar with edit overlay
         Box(contentAlignment = Alignment.BottomEnd) {
-            Box(
-                contentAlignment = Alignment.Center,
+            Image(
+                painter = painterResource(userAvatarResOrDefault(avatar)),
+                contentDescription = "Avatar",
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(100.dp)
+                    .background(Color(0xFFF3F0FF), CircleShape)
                     .clip(CircleShape)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(Purple.copy(alpha = 0.42f), Orange.copy(alpha = 0.24f))
-                        )
-                    )
                     .border(3.dp, Color.White.copy(alpha = 0.82f), CircleShape)
                     .clickable { onEditAvatar() }
-            ) {
-                Text(avatar, fontSize = 46.sp)
-            }
+            )
             Box(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier

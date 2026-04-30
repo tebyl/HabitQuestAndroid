@@ -86,10 +86,9 @@ fun EvolutionPetCard(
                 contentAlignment = Alignment.Center
             ) {
                 PetAnimation(
-                    modifier = Modifier.size(128.dp),
-                    animationRes = petAnimationResFor(petState.stage),
                     stage = petState.stage,
-                    streak = petState.streak
+                    streak = petState.streak,
+                    modifier = Modifier.size(160.dp)
                 )
             }
 

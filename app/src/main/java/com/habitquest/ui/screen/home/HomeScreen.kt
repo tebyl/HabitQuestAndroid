@@ -1,5 +1,6 @@
 package com.habitquest.ui.screen.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
@@ -26,6 +27,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -134,13 +137,16 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(38.dp)
+                                .background(Color(0xFFF3F0FF), CircleShape)
                                 .clip(CircleShape)
-                                .background(
-                                    Brush.linearGradient(listOf(Purple.copy(alpha = 0.42f), Orange.copy(alpha = 0.34f)))
-                                )
                                 .border(2.dp, Color.White.copy(alpha = 0.74f), CircleShape)
                         ) {
-                            Text(state.userAvatar, fontSize = 18.sp)
+                            Image(
+                                painter = painterResource(userAvatarResOrDefault(state.userAvatar)),
+                                contentDescription = "Avatar",
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxSize()
+                            )
                         }
                     }
                 }
@@ -213,10 +219,9 @@ fun HomeScreen(
                                 .border(1.dp, Color.White.copy(alpha = 0.72f), CircleShape)
                         ) {
                             PetAnimation(
-                                modifier = Modifier.size(136.dp),
-                                animationRes = petAnimationResFor(petState.stage),
                                 stage = petState.stage,
-                                streak = petState.streak
+                                streak = petState.streak,
+                                modifier = Modifier.size(140.dp)
                             )
                         }
                         HomeHeroMetric(
