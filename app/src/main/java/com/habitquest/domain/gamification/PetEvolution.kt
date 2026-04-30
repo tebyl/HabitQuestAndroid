@@ -7,11 +7,41 @@ enum class PetStage(
     val icon: String,
     val phrase: String
 ) {
-    EGG("Semilla", 1, 0, "🌱", "Todo comienza aquí 🌱"),
-    BABY("Brote", 2, 300, "🌷", "Cada pequeño hábito la hace crecer"),
-    EXPLORER("Flor", 3, 800, "🌸", "Descubre nuevas rutinas contigo"),
-    GUARDIAN("Aura", 4, 1500, "✨", "Protege tu constancia diaria"),
-    LEGEND("Esencia", 5, 2500, "👑", "Tu disciplina inspira calma y progreso")
+    EGG(
+        label = "Semilla",
+        minLevel = 1,
+        minXP = 0,
+        icon = "🌱",
+        phrase = "Todo comienza aquí 🌱"
+    ),
+    BABY(
+        label = "Brote",
+        minLevel = 2,
+        minXP = 300,
+        icon = "🌷",
+        phrase = "Cada pequeño hábito la hace crecer"
+    ),
+    EXPLORER(
+        label = "Flor",
+        minLevel = 3,
+        minXP = 800,
+        icon = "🌸",
+        phrase = "Descubre nuevas rutinas contigo"
+    ),
+    GUARDIAN(
+        label = "Aura",
+        minLevel = 4,
+        minXP = 1500,
+        icon = "✨",
+        phrase = "Protege tu constancia diaria"
+    ),
+    LEGEND(
+        label = "Esencia",
+        minLevel = 5,
+        minXP = 2500,
+        icon = "👑",
+        phrase = "Tu disciplina inspira calma y progreso"
+    )
 }
 
 data class PetState(
@@ -40,8 +70,14 @@ fun resolvePetState(
     val safeHabitsCompleted = habitsCompleted.coerceAtLeast(0)
     val safeTasksCompleted = tasksCompleted.coerceAtLeast(0)
 
-    val stage = PetStage.entries.last { safeLevel >= it.minLevel || safeXP >= it.minXP }
-    val nextStage = PetStage.entries.firstOrNull { it.ordinal > stage.ordinal }
+    val stage = PetStage.entries.last { 
+        safeLevel >= it.minLevel || safeXP >= it.minXP 
+    }
+    
+    val nextStage = PetStage.entries.firstOrNull { 
+        it.ordinal > stage.ordinal 
+    }
+
     val progressToNext = nextStage?.let { next ->
         val previousXP = stage.minXP
         val xpRange = (next.minXP - previousXP).coerceAtLeast(1)

@@ -38,8 +38,19 @@ fun EvolutionPetCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.82f), Purple.copy(alpha = 0.14f))))
-            .border(1.dp, Color.White.copy(alpha = 0.72f), RoundedCornerShape(24.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        Color.White.copy(alpha = 0.82f),
+                        Purple.copy(alpha = 0.14f)
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.72f),
+                shape = RoundedCornerShape(24.dp)
+            )
             .padding(20.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -49,6 +60,7 @@ fun EvolutionPetCard(
             style = AppTypography.titleMedium,
             color = TextPrimary
         )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -58,10 +70,19 @@ fun EvolutionPetCard(
                 modifier = Modifier
                     .size(140.dp)
                     .background(
-                        Brush.radialGradient(listOf(Color.White, stageColor.copy(alpha = 0.20f))),
-                        CircleShape
+                        brush = Brush.radialGradient(
+                            listOf(
+                                Color.White,
+                                stageColor.copy(alpha = 0.20f)
+                            )
+                        ),
+                        shape = CircleShape
                     )
-                    .border(2.dp, Color.White.copy(alpha = 0.82f), CircleShape),
+                    .border(
+                        width = 2.dp,
+                        color = Color.White.copy(alpha = 0.82f),
+                        shape = CircleShape
+                    ),
                 contentAlignment = Alignment.Center
             ) {
                 PetAnimation(
@@ -84,6 +105,7 @@ fun EvolutionPetCard(
                         letterSpacing = 1.sp,
                         fontSize = 9.sp
                     )
+
                     if (petState.streakBonusActive) {
                         Text(
                             text = "RITMO +",
@@ -93,17 +115,24 @@ fun EvolutionPetCard(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
                                 .background(Amber.copy(alpha = 0.12f))
-                                .border(1.dp, Amber.copy(alpha = 0.28f), RoundedCornerShape(8.dp))
+                                .border(
+                                    width = 1.dp,
+                                    color = Amber.copy(alpha = 0.28f),
+                                    shape = RoundedCornerShape(8.dp)
+                                )
                                 .padding(horizontal = 6.dp, vertical = 2.dp)
                         )
                     }
                 }
+
                 Spacer(Modifier.height(4.dp))
+
                 Text(
                     text = petState.stage.label,
                     style = AppTypography.headlineMedium,
                     color = TextPrimary
                 )
+
                 Text(
                     text = petState.stage.phrase,
                     style = AppTypography.bodyMedium,
@@ -119,7 +148,8 @@ fun EvolutionPetCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = petState.nextStage?.let { "Próxima evolución: ${it.label}" } ?: "Evolución completa",
+                    text = petState.nextStage?.let { "Próxima evolución: ${it.label}" }
+                        ?: "Evolución completa",
                     style = AppTypography.labelSmall,
                     color = TextMuted,
                     fontSize = 10.sp
@@ -145,7 +175,11 @@ fun EvolutionPetCard(
                         .fillMaxHeight()
                         .fillMaxWidth(progress)
                         .clip(RoundedCornerShape(4.dp))
-                        .background(Brush.horizontalGradient(listOf(stageColor, Amber)))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(stageColor, Amber)
+                            )
+                        )
                 )
             }
         }
@@ -154,9 +188,24 @@ fun EvolutionPetCard(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            PetMetric("XP total", "${petState.totalXP}", Purple, Modifier.weight(1f))
-            PetMetric("Mejor ritmo", "${petState.streak}d", Orange, Modifier.weight(1f))
-            PetMetric("Hábitos", petState.habitsCompleted.toString(), Emerald, Modifier.weight(1f))
+            PetMetric(
+                label = "XP total",
+                value = "${petState.totalXP}",
+                color = Purple,
+                modifier = Modifier.weight(1f)
+            )
+            PetMetric(
+                label = "Mejor ritmo",
+                value = "${petState.streak}d",
+                color = Orange,
+                modifier = Modifier.weight(1f)
+            )
+            PetMetric(
+                label = "Hábitos",
+                value = petState.habitsCompleted.toString(),
+                color = Emerald,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
@@ -172,20 +221,34 @@ private fun PetMetric(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .background(CardBackground2.copy(alpha = 0.62f))
-            .border(1.dp, DividerLight, RoundedCornerShape(10.dp))
+            .border(
+                width = 1.dp,
+                color = DividerLight,
+                shape = RoundedCornerShape(10.dp)
+            )
             .padding(horizontal = 8.dp, vertical = 8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = value, style = AppTypography.labelLarge, color = color, fontSize = 12.sp)
-        Text(text = label, style = AppTypography.labelSmall, color = TextDimmer, fontSize = 8.sp)
+        Text(
+            text = value,
+            style = AppTypography.labelLarge,
+            color = color,
+            fontSize = 12.sp
+        )
+        Text(
+            text = label,
+            style = AppTypography.labelSmall,
+            color = TextDimmer,
+            fontSize = 8.sp
+        )
     }
 }
 
 @Composable
 private fun PetStage.stageColor(): Color = when (this) {
-    PetStage.EGG -> Color(0xFFCBB8FF)
-    PetStage.BABY -> Emerald
+    PetStage.EGG      -> Color(0xFFCBB8FF)
+    PetStage.BABY     -> Emerald
     PetStage.EXPLORER -> Blue
     PetStage.GUARDIAN -> Purple
-    PetStage.LEGEND -> Orange
+    PetStage.LEGEND   -> Orange
 }

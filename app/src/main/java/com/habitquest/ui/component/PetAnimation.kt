@@ -10,17 +10,13 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.LottieConstants
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
+import com.airbnb.lottie.compose.*
 import com.habitquest.R
 import com.habitquest.domain.gamification.PetStage
 
@@ -77,17 +73,18 @@ fun PetAnimation(
     stage: PetStage = PetStage.BABY,
     streak: Int = 0
 ) {
-    val isEgg       = stage == PetStage.EGG
-    val mood        = petMoodFor(streak)
-    val finalSpeed  = speedByMood(petSpeedFor(stage), mood)
+    val isEgg = stage == PetStage.EGG
+    val mood = petMoodFor(streak)
+    val finalSpeed = speedByMood(petSpeedFor(stage), mood)
         .let { if (isEgg) it.coerceAtLeast(0.9f) else it }
-    val glowColor   = if (isEgg) Color(0xFFCBB8FF).copy(alpha = 0.3f) else glowColorFor(mood)
-    val stageScale  = if (isEgg) 0.9f else petSizeMultiplierFor(stage)
-    val totalScale  = BASE_LOTTIE_SCALE * stageScale
+    
+    val stageScale = if (isEgg) 0.9f else petSizeMultiplierFor(stage)
+    val totalScale = BASE_LOTTIE_SCALE * stageScale
+    
     val glowElevation: Dp = when {
-        glowColor == null -> 0.dp
-        isEgg             -> 4.dp
-        else              -> 12.dp
+        isEgg -> 4.dp
+        glowColorFor(mood) != null -> 12.dp
+        else -> 0.dp
     }
 
     val compositionResult = rememberLottieComposition(
@@ -96,36 +93,42 @@ fun PetAnimation(
     val composition = compositionResult.value
     val animationState = animateLottieCompositionAsState(
         composition = composition,
-        speed       = finalSpeed,
-        iterations  = LottieConstants.IterateForever
+        speed = finalSpeed,
+        iterations = LottieConstants.IterateForever
     )
 
     Box(
         contentAlignment = Alignment.Center,
         modifier = modifier
             .defaultMinSize(minWidth = 140.dp, minHeight = 140.dp)
-            .shadow(glowElevation, CircleShape, clip = false)
+            .shadow(
+                elevation = glowElevation,
+                shape = CircleShape,
+                clip = false
+            )
     ) {
         if (composition == null) {
-            // Shown only while the composition is loading; disappears once ready.
             Box(
                 modifier = Modifier
                     .size(14.dp)
-                    .background(Color(0xFFCBB8FF).copy(alpha = 0.18f), CircleShape)
+                    .background(
+                        color = Color(0xFFCBB8FF).copy(alpha = 0.18f),
+                        shape = CircleShape
+                    )
             )
             return@Box
         }
 
         LottieAnimation(
-            composition  = composition,
-            progress     = { animationState.progress },
+            composition = composition,
+            progress = { animationState.progress },
             contentScale = ContentScale.FillBounds,
-            modifier     = Modifier
+            modifier = Modifier
                 .fillMaxSize()
                 .graphicsLayer {
                     scaleX = totalScale
                     scaleY = totalScale
-                    alpha  = if (isEgg) 0.7f else 1f
+                    alpha = if (isEgg) 0.7f else 1f
                 }
         )
     }
