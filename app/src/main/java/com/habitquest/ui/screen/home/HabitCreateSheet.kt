@@ -16,6 +16,8 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -23,6 +25,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,6 +41,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.habitquest.domain.model.Habit
+import com.habitquest.domain.model.Task
 import com.habitquest.ui.theme.Amber
 import com.habitquest.ui.theme.AppTypography
 import com.habitquest.ui.theme.Background
@@ -50,27 +55,65 @@ import com.habitquest.ui.theme.TextDim
 import com.habitquest.ui.theme.TextDimmer
 import com.habitquest.ui.theme.TextPrimary
 import com.habitquest.ui.theme.TextSecondary
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.format.DateTimeFormatter
+import java.time.format.FormatStyle
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HabitCreateSheet(
     onDismiss: () -> Unit,
     onAddHabit: (name: String, icon: String, category: String, frequency: String) -> Unit,
-    onAddTask: (name: String, category: String) -> Unit
+    onAddTask: (name: String, category: String, scheduledDate: String) -> Unit,
+    editingHabit: Habit? = null,
+    editingTask: Task? = null,
+    onUpdateHabit: (id: Long, name: String, category: String, frequency: String) -> Unit = { _, _, _, _ -> },
+    onUpdateTask: (id: Long, name: String, category: String, scheduledDate: String) -> Unit = { _, _, _, _ -> }
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusRequester = remember { FocusRequester() }
+    val datePickerZone = remember { ZoneOffset.UTC }
+    val dateFormatter = remember { DateTimeFormatter.ISO_LOCAL_DATE }
+    val displayDateFormatter = remember { DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale("es")) }
 
-    var tabIndex by remember { mutableIntStateOf(0) }
-    var name by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<String?>(null) }
-    var frequency by remember { mutableStateOf(HabitFrequency.DAILY) }
-    var selectedDays by remember { mutableStateOf(emptySet<String>()) }
+    val editMode = editingHabit != null || editingTask != null
+    val initialFrequency = remember(editingHabit?.frequency) {
+        parseFrequencyString(editingHabit?.frequency ?: "daily")
+    }
+    val initialScheduledDate = remember(editingTask?.scheduledDate) {
+        editingTask?.scheduledDate
+            ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            ?: LocalDate.now()
+    }
+
+    var tabIndex by remember(editingHabit?.id, editingTask?.id) {
+        mutableIntStateOf(if (editingTask != null) 1 else 0)
+    }
+    var name by remember(editingHabit?.id, editingTask?.id) {
+        mutableStateOf(editingHabit?.name ?: editingTask?.name ?: "")
+    }
+    var selectedCategory by remember(editingHabit?.id, editingTask?.id) {
+        mutableStateOf(editingHabit?.category ?: editingTask?.category)
+    }
+    var frequency by remember(editingHabit?.id) { mutableStateOf(initialFrequency.type) }
+    var selectedDays by remember(editingHabit?.id) { mutableStateOf(initialFrequency.selectedDays) }
+    var timesPerWeek by remember(editingHabit?.id) { mutableStateOf(initialFrequency.timesPerWeek) }
+    var scheduledDate by remember(editingTask?.id) { mutableStateOf(initialScheduledDate) }
+    var showDatePicker by remember { mutableStateOf(false) }
+    var attemptedSave by remember { mutableStateOf(false) }
 
     val isHabit = tabIndex == 0
     val nameError = name.isBlank()
     val categoryError = selectedCategory == null
-    val canSave = !nameError && !categoryError
+    val frequencyError = isHabit && when (frequency) {
+        HabitFrequency.SPECIFIC_DAYS -> selectedDays.isEmpty()
+        HabitFrequency.TIMES_PER_WEEK -> timesPerWeek < 1
+        HabitFrequency.DAILY -> false
+    }
+    val canAttemptSave = !nameError && !categoryError
 
     fun resetForm(nextTab: Int) {
         tabIndex = nextTab
@@ -78,18 +121,33 @@ fun HabitCreateSheet(
         selectedCategory = null
         frequency = HabitFrequency.DAILY
         selectedDays = emptySet()
+        timesPerWeek = 1
+        scheduledDate = LocalDate.now()
+        attemptedSave = false
     }
 
     fun save() {
+        attemptedSave = true
         val category = selectedCategory ?: return
         val trimmedName = name.trim()
         if (trimmedName.isBlank()) return
+        if (frequencyError) return
 
         if (isHabit) {
-            val icon = AppCategories.firstOrNull { it.key == category }?.icon ?: ""
-            onAddHabit(trimmedName, icon, category, buildFrequencyString(frequency, selectedDays))
+            val icon = AppCategories.firstOrNull { it.key == category }?.habitIcon ?: ""
+            val frequencyText = buildFrequencyString(frequency, selectedDays, timesPerWeek)
+            if (editingHabit != null) {
+                onUpdateHabit(editingHabit.id, trimmedName, category, frequencyText)
+            } else {
+                onAddHabit(trimmedName, icon, category, frequencyText)
+            }
         } else {
-            onAddTask(trimmedName, category)
+            val scheduledDateText = scheduledDate.format(dateFormatter)
+            if (editingTask != null) {
+                onUpdateTask(editingTask.id, trimmedName, category, scheduledDateText)
+            } else {
+                onAddTask(trimmedName, category, scheduledDateText)
+            }
         }
     }
 
@@ -115,31 +173,37 @@ fun HabitCreateSheet(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "CREAR",
+                text = when {
+                    editingHabit != null -> "Editar hábito"
+                    editingTask != null -> "Editar tarea"
+                    else -> "CREAR"
+                },
                 style = AppTypography.labelSmall,
                 color = TextDim,
                 letterSpacing = 1.5.sp
             )
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(CardBackground2)
-            ) {
-                listOf("Habito", "Tarea").forEachIndexed { index, label ->
-                    val selected = tabIndex == index
-                    TextButton(
-                        onClick = { resetForm(index) },
-                        modifier = Modifier
-                            .weight(1f)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(if (selected) Amber else CardBackground2),
-                        colors = ButtonDefaults.textButtonColors(
-                            contentColor = if (selected) Background else TextDim
-                        )
-                    ) {
-                        Text(label, style = AppTypography.labelLarge, fontSize = 13.sp)
+            if (!editMode) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(CardBackground2)
+                ) {
+                    listOf("Habito", "Tarea").forEachIndexed { index, label ->
+                        val selected = tabIndex == index
+                        TextButton(
+                            onClick = { resetForm(index) },
+                            modifier = Modifier
+                                .weight(1f)
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(if (selected) Amber else CardBackground2),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = if (selected) Background else TextDim
+                            )
+                        ) {
+                            Text(label, style = AppTypography.labelLarge, fontSize = 13.sp)
+                        }
                     }
                 }
             }
@@ -173,7 +237,7 @@ fun HabitCreateSheet(
                     cursorColor = Amber
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { if (canSave) save() })
+                keyboardActions = KeyboardActions(onDone = { if (canAttemptSave) save() })
             )
 
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -195,11 +259,29 @@ fun HabitCreateSheet(
                     FrequencySelector(
                         selected = frequency,
                         selectedDays = selectedDays,
+                        timesPerWeek = timesPerWeek,
+                        showValidationErrors = attemptedSave,
                         onSelectFrequency = { frequency = it },
                         onToggleDay = { day ->
                             selectedDays = if (day in selectedDays) selectedDays - day else selectedDays + day
-                        }
+                        },
+                        onSelectTimesPerWeek = { timesPerWeek = it }
                     )
+                }
+            } else {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Fecha", style = AppTypography.labelSmall, color = TextDim, fontSize = 10.sp)
+                    OutlinedButton(
+                        onClick = { showDatePicker = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        border = BorderStroke(1.dp, Divider)
+                    ) {
+                        Text(
+                            text = scheduledDate.format(displayDateFormatter),
+                            color = TextSecondary,
+                            style = AppTypography.labelLarge
+                        )
+                    }
                 }
             }
 
@@ -218,7 +300,7 @@ fun HabitCreateSheet(
                 }
                 Button(
                     onClick = ::save,
-                    enabled = canSave,
+                    enabled = canAttemptSave,
                     modifier = Modifier.weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Amber,
@@ -227,9 +309,36 @@ fun HabitCreateSheet(
                         disabledContentColor = TextDimmer
                     )
                 ) {
-                    Text("Guardar", style = AppTypography.labelLarge)
+                    Text(if (editMode) "Guardar cambios" else "Guardar", style = AppTypography.labelLarge)
                 }
             }
+        }
+    }
+
+    if (showDatePicker) {
+        val initialMillis = scheduledDate.atStartOfDay(datePickerZone).toInstant().toEpochMilli()
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialMillis)
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { millis ->
+                            scheduledDate = Instant.ofEpochMilli(millis).atZone(datePickerZone).toLocalDate()
+                        }
+                        showDatePicker = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDatePicker = false }) {
+                    Text("Cancelar")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 

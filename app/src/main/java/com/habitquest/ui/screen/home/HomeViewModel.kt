@@ -18,6 +18,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @HiltViewModel
@@ -161,15 +163,57 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun createTask(name: String, category: String) {
+    fun updateHabit(habitId: Long, name: String, category: String, frequency: String) {
+        if (name.isBlank()) return
+        val current = _uiState.value.habits.find { it.id == habitId } ?: return
+        viewModelScope.launch {
+            repository.updateHabit(
+                current.copy(
+                    name = name.trim(),
+                    category = category,
+                    frequency = frequency
+                )
+            )
+            _uiState.update { it.copy(showQuickAdd = false) }
+        }
+    }
+
+    fun deleteHabit(habitId: Long) {
+        viewModelScope.launch {
+            repository.deleteHabit(habitId)
+        }
+    }
+
+    fun createTask(name: String, category: String, scheduledDate: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)) {
         if (name.isBlank()) return
         viewModelScope.launch {
             repository.addTask(
                 com.habitquest.domain.model.Task(
-                    name = name.trim(), category = category
+                    name = name.trim(), category = category, scheduledDate = scheduledDate
                 )
             )
             _uiState.update { it.copy(showQuickAdd = false) }
+        }
+    }
+
+    fun updateTask(taskId: Long, name: String, category: String, scheduledDate: String) {
+        if (name.isBlank()) return
+        val current = _uiState.value.tasks.find { it.id == taskId } ?: return
+        viewModelScope.launch {
+            repository.updateTask(
+                current.copy(
+                    name = name.trim(),
+                    category = category,
+                    scheduledDate = scheduledDate
+                )
+            )
+            _uiState.update { it.copy(showQuickAdd = false) }
+        }
+    }
+
+    fun deleteTask(taskId: Long) {
+        viewModelScope.launch {
+            repository.deleteTask(taskId)
         }
     }
 }

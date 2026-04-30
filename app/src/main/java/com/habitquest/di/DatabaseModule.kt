@@ -6,10 +6,11 @@ import androidx.room.RoomDatabase
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.habitquest.data.local.HabitQuestDatabase
 import com.habitquest.data.local.HabitQuestMigrations
+import com.habitquest.data.local.DatabaseSeedPolicy
 import com.habitquest.data.local.dao.HabitDao
 import com.habitquest.data.local.dao.TaskDao
 import com.habitquest.data.local.dao.UserStatsDao
-import com.habitquest.data.local.entity.UserStatsEntity
+import com.habitquest.data.preferences.FirstRunPreferences
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -28,14 +29,21 @@ object DatabaseModule {
     @Singleton
     fun provideDatabase(@ApplicationContext context: Context): HabitQuestDatabase {
         var db: HabitQuestDatabase? = null
+        val firstRunPreferences = FirstRunPreferences(context.applicationContext)
 
-        fun seedData() {
+        fun initializeFirstRunState() {
             CoroutineScope(Dispatchers.IO).launch {
-                db?.let { instance ->
-                    instance.habitDao().insertHabits(HabitQuestDatabase.defaultHabits())
-                    instance.userStatsDao().insertOrUpdate(UserStatsEntity(totalXP = 0))
-                    HabitQuestDatabase.defaultTasks().forEach { task ->
-                        instance.taskDao().insertTask(task)
+                val isFirstRun = firstRunPreferences.isFirstRun()
+                if (DatabaseSeedPolicy.shouldMarkFirstRunComplete(isFirstRun)) {
+                    firstRunPreferences.setFirstRun(false)
+                }
+
+                if (DatabaseSeedPolicy.shouldSeedDefaults(isFirstRun)) {
+                    db?.let { instance ->
+                        instance.habitDao().insertHabits(HabitQuestDatabase.defaultHabits())
+                        HabitQuestDatabase.defaultTasks().forEach { task ->
+                            instance.taskDao().insertTask(task)
+                        }
                     }
                 }
             }
@@ -44,7 +52,7 @@ object DatabaseModule {
         val callback = object : RoomDatabase.Callback() {
             override fun onCreate(db: SupportSQLiteDatabase) {
                 super.onCreate(db)
-                seedData()
+                initializeFirstRunState()
             }
         }
 
@@ -57,7 +65,8 @@ object DatabaseModule {
                 HabitQuestMigrations.MIGRATION_1_2,
                 HabitQuestMigrations.MIGRATION_2_3,
                 HabitQuestMigrations.MIGRATION_3_4,
-                HabitQuestMigrations.MIGRATION_4_5
+                HabitQuestMigrations.MIGRATION_4_5,
+                HabitQuestMigrations.MIGRATION_5_6
             )
             .addCallback(callback)
             .build()

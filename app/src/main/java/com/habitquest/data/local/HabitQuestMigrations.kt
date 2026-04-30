@@ -28,6 +28,12 @@ object HabitQuestMigrations {
         }
     }
 
+    val MIGRATION_5_6 = object : Migration(5, 6) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            ensureCurrentSchema(db)
+        }
+    }
+
     private fun ensureCurrentSchema(db: SupportSQLiteDatabase) {
         ensureHabitsTable(db)
         ensureUserStatsTable(db)
@@ -98,7 +104,8 @@ object HabitQuestMigrations {
                 `category` TEXT NOT NULL,
                 `isCompleted` INTEGER NOT NULL,
                 `createdAt` INTEGER NOT NULL,
-                `completedAt` INTEGER
+                `completedAt` INTEGER,
+                `scheduledDate` TEXT
             )
             """.trimIndent()
         )
@@ -106,6 +113,7 @@ object HabitQuestMigrations {
         db.addColumnIfMissing("tasks", "isCompleted", "INTEGER NOT NULL DEFAULT 0")
         db.addColumnIfMissing("tasks", "createdAt", "INTEGER NOT NULL DEFAULT 0")
         db.addColumnIfMissing("tasks", "completedAt", "INTEGER DEFAULT NULL")
+        db.addColumnIfMissing("tasks", "scheduledDate", "TEXT DEFAULT NULL")
         db.normalizeTasksTable()
     }
 
@@ -183,14 +191,15 @@ object HabitQuestMigrations {
                 `category` TEXT NOT NULL,
                 `isCompleted` INTEGER NOT NULL,
                 `createdAt` INTEGER NOT NULL,
-                `completedAt` INTEGER
+                `completedAt` INTEGER,
+                `scheduledDate` TEXT
             )
             """.trimIndent()
         )
         execSQL(
             """
-            INSERT INTO `tasks_new` (`id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`)
-            SELECT `id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`
+            INSERT INTO `tasks_new` (`id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`, `scheduledDate`)
+            SELECT `id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`, `scheduledDate`
             FROM `tasks`
             """.trimIndent()
         )

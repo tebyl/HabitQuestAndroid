@@ -9,6 +9,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,10 +17,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,7 +42,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.habitquest.data.repository.HabitRepositoryImpl
 import com.habitquest.domain.gamification.resolvePetState
+import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Levels
+import com.habitquest.domain.model.Task
 import com.habitquest.ui.component.*
 import com.habitquest.ui.theme.*
 import java.time.LocalDate
@@ -53,6 +57,10 @@ fun HomeScreen(
     onOpenTasksCalendar: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    var editingHabit by remember { mutableStateOf<Habit?>(null) }
+    var editingTask by remember { mutableStateOf<Task?>(null) }
+    var habitPendingDelete by remember { mutableStateOf<Habit?>(null) }
+    var taskPendingDelete by remember { mutableStateOf<Task?>(null) }
 
     val today   = LocalDate.now()
     val dateStr = today.format(
@@ -68,6 +76,7 @@ fun HomeScreen(
     val pendingTasks   = pendingTasksForHome(state.tasks)
     val completedTasks = state.tasks.filter { it.isCompleted }
     val habitsAtRisk   = state.habits.filter { it.streakCount > 0 && !it.completedToday }
+    val isHomeEmpty    = shouldShowHomeEmptyState(state.habits, state.tasks)
     val currentStreak  = state.habits.maxOfOrNull { it.streakCount } ?: 0
     
     val petState = resolvePetState(
@@ -344,7 +353,19 @@ fun HomeScreen(
                 Spacer(Modifier.height(10.dp))
             }
 
-            if (state.habits.isEmpty()) {
+            if (isHomeEmpty) {
+                item {
+                    EmptyStateCard(
+                        icon = "+",
+                        title = "Comienza tu rutina ✨",
+                        subtitle = "Agrega tu primer hábito o tarea para empezar",
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                    Spacer(Modifier.height(16.dp))
+                }
+            }
+
+            if (state.habits.isEmpty() && !isHomeEmpty) {
                 item {
                     EmptyStateCard(
                         icon     = "🌱",
@@ -370,6 +391,8 @@ fun HomeScreen(
                             xpGain       = xpGain,
                             onComplete   = viewModel::completeHabit,
                             onUncomplete = viewModel::uncompleteHabit,
+                            onEdit       = { editingHabit = it },
+                            onDelete     = { habitPendingDelete = it },
                             modifier     = Modifier.padding(horizontal = 20.dp)
                         )
                     }
@@ -395,7 +418,7 @@ fun HomeScreen(
                     )
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         if (state.tasks.isNotEmpty()) {
                             Text(
@@ -405,15 +428,27 @@ fun HomeScreen(
                                 fontSize = 11.sp
                             )
                         }
-                        IconButton(
-                            onClick = onOpenTasksCalendar,
-                            modifier = Modifier.size(32.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(18.dp))
+                                .background(Purple.copy(alpha = 0.12f))
+                                .border(1.dp, Purple.copy(alpha = 0.24f), RoundedCornerShape(18.dp))
+                                .clickable(onClick = onOpenTasksCalendar)
+                                .padding(horizontal = 10.dp, vertical = 8.dp)
                         ) {
+                            Text(
+                                text = "Ver calendario",
+                                style = AppTypography.labelSmall,
+                                color = Purple,
+                                fontSize = 11.sp
+                            )
                             Icon(
                                 imageVector = Icons.Filled.CalendarMonth,
                                 contentDescription = "Ver calendario",
                                 tint = Purple,
-                                modifier = Modifier.size(18.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
                     }
@@ -421,7 +456,7 @@ fun HomeScreen(
                 Spacer(Modifier.height(10.dp))
             }
 
-            if (pendingTasks.isEmpty()) {
+            if (pendingTasks.isEmpty() && !isHomeEmpty) {
                 item {
                     EmptyStateCard(
                         icon     = "✓",
@@ -443,6 +478,8 @@ fun HomeScreen(
                             task         = task,
                             onComplete   = viewModel::completeTask,
                             onUncomplete = viewModel::uncompleteTask,
+                            onEdit       = { editingTask = it },
+                            onDelete     = { taskPendingDelete = it },
                             modifier     = Modifier.padding(horizontal = 20.dp)
                         )
                     }
@@ -507,13 +544,77 @@ fun HomeScreen(
     }
 
     // Quick-add bottom sheet
-    if (state.showQuickAdd) {
+    if (state.showQuickAdd || editingHabit != null || editingTask != null) {
         HabitCreateSheet(
-            onDismiss  = viewModel::hideQuickAdd,
+            onDismiss  = {
+                viewModel.hideQuickAdd()
+                editingHabit = null
+                editingTask = null
+            },
             onAddHabit = viewModel::createHabit,
-            onAddTask  = viewModel::createTask
+            onAddTask  = viewModel::createTask,
+            editingHabit = editingHabit,
+            editingTask = editingTask,
+            onUpdateHabit = { id, name, category, frequency ->
+                viewModel.updateHabit(id, name, category, frequency)
+                editingHabit = null
+            },
+            onUpdateTask = { id, name, category, scheduledDate ->
+                viewModel.updateTask(id, name, category, scheduledDate)
+                editingTask = null
+            }
         )
     }
+
+    habitPendingDelete?.let { habit ->
+        DeleteConfirmDialog(
+            title = "¿Eliminar este hábito?",
+            onDismiss = { habitPendingDelete = null },
+            onConfirm = {
+                viewModel.deleteHabit(habit.id)
+                habitPendingDelete = null
+            }
+        )
+    }
+
+    taskPendingDelete?.let { task ->
+        DeleteConfirmDialog(
+            title = "¿Eliminar esta tarea?",
+            onDismiss = { taskPendingDelete = null },
+            onConfirm = {
+                viewModel.deleteTask(task.id)
+                taskPendingDelete = null
+            }
+        )
+    }
+}
+
+@Composable
+private fun DeleteConfirmDialog(
+    title: String,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = CardBackground,
+        title = {
+            Text(title, style = AppTypography.titleMedium, color = TextPrimary)
+        },
+        text = {
+            Text("Esta acción no se puede deshacer.", style = AppTypography.bodyMedium, color = TextDim)
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Eliminar", color = Red, style = AppTypography.labelLarge)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = TextDim, style = AppTypography.labelLarge)
+            }
+        }
+    )
 }
 
 @Composable

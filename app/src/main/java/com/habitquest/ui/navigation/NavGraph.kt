@@ -51,6 +51,9 @@ fun NavGraph() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val showBottomBar = navItems.any { item ->
+        currentDestination?.hierarchy?.any { it.route == item.screen.route } == true
+    }
 
     Column(
         modifier = Modifier
@@ -69,61 +72,68 @@ fun NavGraph() {
             }
             composable(Screen.Progress.route) { StatisticsScreen() }
             composable(Screen.Profile.route) { ProfileScreen() }
-            composable(Screen.TasksCalendar.route) { TasksCalendarScreen() }
+            composable(Screen.TasksCalendar.route) {
+                TasksCalendarScreen(onNavigateUp = { navController.navigateUp() })
+            }
         }
 
-        // Bottom navigation bar
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(Background.copy(alpha = 0.95f))
-                .navigationBarsPadding()
+        AnimatedVisibility(
+            visible = showBottomBar,
+            enter = fadeIn(),
+            exit = fadeOut()
         ) {
-            Row(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp, vertical = 12.dp),
-                horizontalArrangement = Arrangement.SpaceAround,
-                verticalAlignment = Alignment.CenterVertically
+                    .background(Background.copy(alpha = 0.95f))
+                    .navigationBarsPadding()
             ) {
-                navItems.forEach { item ->
-                    val isSelected = currentDestination?.hierarchy
-                        ?.any { it.route == item.screen.route } == true
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp, vertical = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceAround,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    navItems.forEach { item ->
+                        val isSelected = currentDestination?.hierarchy
+                            ?.any { it.route == item.screen.route } == true
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(
-                                if (isSelected) Purple.copy(alpha = 0.14f) else Color.Transparent
-                            )
-                            .clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null
-                            ) {
-                                navController.navigate(item.screen.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(
+                                    if (isSelected) Purple.copy(alpha = 0.14f) else Color.Transparent
+                                )
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null
+                                ) {
+                                    navController.navigate(item.screen.route) {
+                                        popUpTo(navController.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
-                            }
-                            .padding(horizontal = 20.dp, vertical = 8.dp)
-                    ) {
-                        Icon(
-                            imageVector = item.icon,
-                            contentDescription = item.label,
-                            tint = if (isSelected) Amber else TextDimmer,
-                            modifier = Modifier.size(22.dp)
-                        )
-                        Spacer(Modifier.height(4.dp))
-                        Text(
-                            text = item.label,
-                            style = AppTypography.labelSmall,
-                            color = if (isSelected) Amber else TextDimmer,
-                            fontSize = 10.sp
-                        )
+                                .padding(horizontal = 20.dp, vertical = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = item.icon,
+                                contentDescription = item.label,
+                                tint = if (isSelected) Amber else TextDimmer,
+                                modifier = Modifier.size(22.dp)
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            Text(
+                                text = item.label,
+                                style = AppTypography.labelSmall,
+                                color = if (isSelected) Amber else TextDimmer,
+                                fontSize = 10.sp
+                            )
+                        }
                     }
                 }
             }

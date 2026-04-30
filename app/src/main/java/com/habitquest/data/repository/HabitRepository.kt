@@ -12,10 +12,12 @@ interface HabitRepository {
     suspend fun completeHabit(habitId: Long): Int
     suspend fun resetDailyHabitsIfNeeded()
     suspend fun addHabit(habit: Habit): Long
+    suspend fun updateHabit(habit: Habit)
     suspend fun deleteHabit(habitId: Long)
     suspend fun updateUserName(name: String)
     suspend fun updateUserAvatar(avatar: String)
     suspend fun addTask(task: Task): Long
+    suspend fun updateTask(task: Task)
     suspend fun completeTask(taskId: Long)
     suspend fun deleteTask(taskId: Long)
     suspend fun uncompleteHabit(habitId: Long)

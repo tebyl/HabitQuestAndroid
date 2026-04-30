@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.habitquest.ui.component.*
+import com.habitquest.ui.screen.home.categoryColor as appCategoryColor
+import com.habitquest.ui.screen.home.categoryLabel as appCategoryLabel
 import com.habitquest.ui.theme.*
 
 @Composable
@@ -242,7 +244,7 @@ private fun categoryLabel(category: String): String = when (category) {
     "productividad" -> "Productividad"
     "vida_diaria"   -> "Diario"
     "gamificacion"  -> "Juego"
-    else            -> category.replaceFirstChar { it.uppercase() }
+    else            -> appCategoryLabel(category)
 }
 
 private fun categoryColor(category: String) = when (category) {
@@ -252,5 +254,5 @@ private fun categoryColor(category: String) = when (category) {
     "productividad" -> Amber
     "vida_diaria"   -> Orange
     "gamificacion"  -> Rose
-    else            -> Gray
+    else            -> appCategoryColor(category)
 }

@@ -8,6 +8,7 @@ import com.habitquest.data.local.entity.TaskEntity
 import com.habitquest.data.local.entity.UserStatsEntity
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -109,6 +110,93 @@ class HabitRepositoryImplTest {
         assertEquals(false, task?.isCompleted)
         assertNull(task?.completedAt)
         assertEquals(0, statsDao.getUserStatsOnce()?.totalXP)
+    }
+
+    @Test
+    fun updateHabit_changesNameAndCategoryWithoutResettingProgress() = runBlocking {
+        val habitDao = FakeHabitDao(
+            HabitEntity(
+                id = 1,
+                name = "Old",
+                icon = "*",
+                category = "vida_diaria",
+                streakCount = 4,
+                totalDays = 9,
+                completedToday = true
+            )
+        )
+        val repository = HabitRepositoryImpl(habitDao, FakeUserStatsDao(UserStatsEntity()), FakeTaskDao())
+
+        repository.updateHabit(
+            com.habitquest.domain.model.Habit(
+                id = 1,
+                name = "New",
+                icon = "*",
+                category = "salud",
+                frequency = "weekly",
+                streakCount = 4,
+                totalDays = 9,
+                completedToday = true
+            )
+        )
+
+        val habit = repository.getHabits().first().single()
+        assertEquals("New", habit.name)
+        assertEquals("salud", habit.category)
+        assertEquals("weekly", habit.frequency)
+        assertEquals(4, habit.streakCount)
+        assertEquals(9, habit.totalDays)
+        assertEquals(true, habit.completedToday)
+    }
+
+    @Test
+    fun deleteHabit_removesHabit() = runBlocking {
+        val habitDao = FakeHabitDao(HabitEntity(id = 1, name = "Delete me", icon = "*", category = "vida_diaria"))
+        val repository = HabitRepositoryImpl(habitDao, FakeUserStatsDao(UserStatsEntity()), FakeTaskDao())
+
+        repository.deleteHabit(1)
+
+        assertEquals(emptyList<com.habitquest.domain.model.Habit>(), repository.getHabits().first())
+    }
+
+    @Test
+    fun updateTask_changesNameCategoryAndDate() = runBlocking {
+        val taskDao = FakeTaskDao()
+        val taskId = taskDao.insertTask(TaskEntity(name = "Old", category = "vida_diaria", scheduledDate = "2026-04-30"))
+        val repository = HabitRepositoryImpl(
+            FakeHabitDao(HabitEntity(id = 1, name = "Habit", icon = "*", category = "vida_diaria")),
+            FakeUserStatsDao(UserStatsEntity()),
+            taskDao
+        )
+
+        repository.updateTask(
+            com.habitquest.domain.model.Task(
+                id = taskId,
+                name = "New",
+                category = "salud",
+                scheduledDate = "2026-05-10"
+            )
+        )
+
+        val task = repository.getTasks().first().single()
+        assertEquals("New", task.name)
+        assertEquals("salud", task.category)
+        assertEquals("2026-05-10", task.scheduledDate)
+    }
+
+    @Test
+    fun deleteTask_removesTask() = runBlocking {
+        val taskDao = FakeTaskDao()
+        val taskId = taskDao.insertTask(TaskEntity(name = "Delete me", category = "vida_diaria"))
+        val repository = HabitRepositoryImpl(
+            FakeHabitDao(HabitEntity(id = 1, name = "Habit", icon = "*", category = "vida_diaria")),
+            FakeUserStatsDao(UserStatsEntity()),
+            taskDao
+        )
+
+        repository.deleteTask(taskId)
+
+        assertEquals(emptyList<com.habitquest.domain.model.Task>(), repository.getTasks().first())
     }
 }
 

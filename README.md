@@ -37,9 +37,12 @@ Place screenshots in `docs/screenshots/` using the following relative paths:
 
 - Habit and task creation with category selection, validation, and XP preview.
 - Complete and revert habits/tasks with XP updates.
-- Home shows only pending tasks to keep the daily view focused.
-- Task history calendar with completed tasks grouped by date.
-- Completed tasks are persisted by completion date in the TasksCalendar screen.
+- Home keeps the daily view focused by showing only pending tasks scheduled for today, plus unscheduled pending tasks.
+- Monthly task calendar in a modern 7-column grid layout.
+- Calendar month navigation with previous/next controls.
+- Future pending tasks appear in the calendar by `scheduledDate`.
+- Completed tasks appear in the calendar by `completedAt`.
+- Selected calendar days show a lower detail panel with that day's tasks and their pending/completed state.
 - Category-based habit XP policy and fixed task XP.
 - Emotional streak system with soft milestones like Constancia, Ritmo, Flujo, and Habito real.
 - XP, levels, daily mission progress, and gentle completion feedback.
@@ -48,7 +51,7 @@ Place screenshots in `docs/screenshots/` using the following relative paths:
 - Statistics screen with weekly habit/task charts and category breakdown; weekly task metrics use `completedAt`.
 - Pastel wellness UI with rounded cards, soft gradients, and a calm lifestyle feel.
 - Offline persistence with Room.
-- Room v5 includes a 4 to 5 migration for task completion timestamps.
+- Room v6 includes nullable task scheduling dates and safe migrations for task completion/scheduling timestamps.
 - Bottom navigation across Home, Statistics, and Profile.
 
 ## Evolution Pet System

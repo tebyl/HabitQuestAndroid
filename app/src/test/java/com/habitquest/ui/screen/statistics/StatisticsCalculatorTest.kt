@@ -69,7 +69,8 @@ class StatisticsCalculatorTest {
                     category = "vida_diaria",
                     isCompleted = false,
                     createdAt = todayCreatedAt,
-                    completedAt = todayCreatedAt
+                    completedAt = todayCreatedAt,
+                    scheduledDate = today.plusDays(1).toString()
                 )
             ),
             today = today,

@@ -32,7 +32,12 @@ class HabitRepositoryImpl @Inject constructor(
             "salud_fisica"  to 35,
             "desarrollo"    to 35,
             "salud_mental"  to 30,
-            "vida_diaria"   to 20
+            "vida_diaria"   to 20,
+            "espiritualidad" to 30,
+            "autocuidado" to 30,
+            "familia_corazon" to 30,
+            "mama_colegio" to 30,
+            "salud" to 35
         )
         const val XP_PER_TASK            = 30
         const val STREAK_BONUS           = 25
@@ -119,6 +124,10 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun addHabit(habit: Habit): Long =
         habitDao.insertHabit(habit.toEntity())
 
+    override suspend fun updateHabit(habit: Habit) {
+        habitDao.updateHabit(habit.toEntity())
+    }
+
     override suspend fun deleteHabit(habitId: Long) {
         habitDao.getHabitById(habitId)?.let { habitDao.deleteHabit(it) }
     }
@@ -133,6 +142,10 @@ class HabitRepositoryImpl @Inject constructor(
 
     override suspend fun addTask(task: Task): Long =
         taskDao.insertTask(task.toEntity())
+
+    override suspend fun updateTask(task: Task) {
+        taskDao.updateTask(task.toEntity())
+    }
 
     override suspend fun completeTask(taskId: Long) {
         val task = taskDao.getTaskById(taskId) ?: return
@@ -180,12 +193,14 @@ class HabitRepositoryImpl @Inject constructor(
 
     private fun TaskEntity.toDomain() = Task(
         id = id, name = name, category = category,
-        isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt
+        isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt,
+        scheduledDate = scheduledDate
     )
 
     private fun Task.toEntity() = TaskEntity(
         id = id, name = name, category = category,
-        isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt
+        isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt,
+        scheduledDate = scheduledDate
     )
 
     private fun UserStatsEntity.toDomain() = UserStats(
