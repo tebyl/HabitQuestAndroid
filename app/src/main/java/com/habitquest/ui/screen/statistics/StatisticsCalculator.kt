@@ -55,9 +55,10 @@ object StatisticsCalculator {
         val weeklyTasks = (6 downTo 0).map { daysAgo ->
             val date = today.minusDays(daysAgo.toLong())
             val count = tasks.count { task ->
-                val taskDate = Instant.ofEpochMilli(task.createdAt)
+                val completedAt = task.completedAt ?: return@count false
+                val taskDate = Instant.ofEpochMilli(completedAt)
                     .atZone(zoneId).toLocalDate()
-                taskDate == date
+                task.isCompleted && taskDate == date
             }
             DayStats(date = date, count = count)
         }
@@ -88,7 +89,7 @@ object StatisticsCalculator {
             categoryBreakdown = categoryBreakdown,
             streaks = streaks,
             totalHabitsCompleted = completedToday,
-            totalTasksCompleted = tasks.count { it.isCompleted },
+            totalTasksCompleted = tasks.count { it.isCompleted && it.completedAt != null },
             maxStreak = habits.maxOfOrNull { it.streakCount } ?: 0,
             completionRateToday = if (habits.isEmpty()) 0f else completedToday.toFloat() / habits.size,
             totalHabits = habits.size

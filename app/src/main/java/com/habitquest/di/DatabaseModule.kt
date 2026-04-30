@@ -56,7 +56,8 @@ object DatabaseModule {
             .addMigrations(
                 HabitQuestMigrations.MIGRATION_1_2,
                 HabitQuestMigrations.MIGRATION_2_3,
-                HabitQuestMigrations.MIGRATION_3_4
+                HabitQuestMigrations.MIGRATION_3_4,
+                HabitQuestMigrations.MIGRATION_4_5
             )
             .addCallback(callback)
             .build()

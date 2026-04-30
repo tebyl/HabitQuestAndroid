@@ -37,14 +37,18 @@ Place screenshots in `docs/screenshots/` using the following relative paths:
 
 - Habit and task creation with category selection, validation, and XP preview.
 - Complete and revert habits/tasks with XP updates.
+- Home shows only pending tasks to keep the daily view focused.
+- Task history calendar with completed tasks grouped by date.
+- Completed tasks are persisted by completion date in the TasksCalendar screen.
 - Category-based habit XP policy and fixed task XP.
 - Emotional streak system with soft milestones like Constancia, Ritmo, Flujo, and Habito real.
 - XP, levels, daily mission progress, and gentle completion feedback.
 - Evolution Pet System: a companion that evolves from Egg to Legend based on XP, level, streak, completed habits, and completed tasks.
 - Profile screen with avatar, level, rank, evolution pet, stats, and achievement badges.
-- Statistics screen with weekly habit/task charts and category breakdown.
+- Statistics screen with weekly habit/task charts and category breakdown; weekly task metrics use `completedAt`.
 - Pastel wellness UI with rounded cards, soft gradients, and a calm lifestyle feel.
 - Offline persistence with Room.
+- Room v5 includes a 4 to 5 migration for task completion timestamps.
 - Bottom navigation across Home, Statistics, and Profile.
 
 ## Evolution Pet System
@@ -87,6 +91,7 @@ app/src/main/java/com/habitquest/
     +-- screen/home/    # Home flow, create sheet, selectors
     +-- screen/profile/ # Profile, rank, badges, XP progress
     +-- screen/statistics/
+    +-- screen/tasks/   # TasksCalendar history screen
 ```
 
 Data flows from Room DAOs through `HabitRepository`, then into screen `ViewModel`s as `StateFlow` UI state. Compose screens collect that state and send user actions back to the ViewModel.
@@ -121,12 +126,10 @@ On Windows:
 .\gradlew.bat :app:testDebugUnitTest
 ```
 
-Current unit test coverage includes 9 JVM tests for XP rules, level calculation, habit completion/revert behavior, empty statistics calculation, and pet evolution.
+Current unit test coverage includes JVM tests for XP rules, level calculation, habit and task completion/revert behavior, statistics calculation, Home task filtering, and pet evolution.
 
 ## Roadmap
 
-- Replace destructive Room fallback with explicit migrations.
-- Add completion history for more accurate long-term statistics.
 - Add Compose smoke/UI tests for navigation and core flows.
 - Add local backup/export support.
 

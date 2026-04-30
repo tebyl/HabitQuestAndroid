@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class HabitRepositoryImplTest {
@@ -54,6 +57,58 @@ class HabitRepositoryImplTest {
 
         assertEquals(0, statsDao.getUserStatsOnce()?.totalXP)
         assertEquals(false, habitDao.getHabitById(1)?.completedToday)
+    }
+
+    @Test
+    fun completeTask_assignsCompletedAt() = runBlocking {
+        val taskDao = FakeTaskDao()
+        val taskId = taskDao.insertTask(
+            TaskEntity(
+                name = "Send report",
+                category = "productividad"
+            )
+        )
+        val statsDao = FakeUserStatsDao(UserStatsEntity(totalXP = 0))
+        val repository = HabitRepositoryImpl(
+            FakeHabitDao(HabitEntity(id = 1, name = "Habit", icon = "*", category = "vida_diaria")),
+            statsDao,
+            taskDao
+        )
+
+        val before = System.currentTimeMillis()
+        repository.completeTask(taskId)
+
+        val task = taskDao.getTaskById(taskId)
+        assertEquals(true, task?.isCompleted)
+        assertNotNull(task?.completedAt)
+        assertTrue((task?.completedAt ?: 0L) >= before)
+        assertEquals(30, statsDao.getUserStatsOnce()?.totalXP)
+    }
+
+    @Test
+    fun uncompleteTask_clearsCompletedAt() = runBlocking {
+        val taskDao = FakeTaskDao()
+        val taskId = taskDao.insertTask(
+            TaskEntity(
+                name = "Send report",
+                category = "productividad",
+                isCompleted = true,
+                completedAt = 1_777_000_000_000L
+            )
+        )
+        val statsDao = FakeUserStatsDao(UserStatsEntity(totalXP = 30))
+        val repository = HabitRepositoryImpl(
+            FakeHabitDao(HabitEntity(id = 1, name = "Habit", icon = "*", category = "vida_diaria")),
+            statsDao,
+            taskDao
+        )
+
+        repository.uncompleteTask(taskId)
+
+        val task = taskDao.getTaskById(taskId)
+        assertEquals(false, task?.isCompleted)
+        assertNull(task?.completedAt)
+        assertEquals(0, statsDao.getUserStatsOnce()?.totalXP)
     }
 }
 
@@ -148,8 +203,13 @@ private class FakeTaskDao : TaskDao {
         publish()
     }
 
-    override suspend fun setCompleted(taskId: Long, completed: Boolean) {
-        tasks[taskId]?.let { tasks[taskId] = it.copy(isCompleted = completed) }
+    override suspend fun setCompletion(taskId: Long, completed: Boolean, completedAt: Long?) {
+        tasks[taskId]?.let {
+            tasks[taskId] = it.copy(
+                isCompleted = completed,
+                completedAt = completedAt
+            )
+        }
         publish()
     }
 

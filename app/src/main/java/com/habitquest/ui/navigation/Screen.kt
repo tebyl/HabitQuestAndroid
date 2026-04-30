@@ -4,4 +4,5 @@ sealed class Screen(val route: String) {
     data object Home     : Screen("home")
     data object Progress : Screen("progress")
     data object Profile  : Screen("profile")
+    data object TasksCalendar : Screen("tasks_calendar")
 }

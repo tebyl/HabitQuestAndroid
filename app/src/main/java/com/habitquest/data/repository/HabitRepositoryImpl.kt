@@ -137,7 +137,7 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun completeTask(taskId: Long) {
         val task = taskDao.getTaskById(taskId) ?: return
         if (task.isCompleted) return
-        taskDao.setCompleted(taskId, true)
+        taskDao.setCompletion(taskId, true, System.currentTimeMillis())
         val today = LocalDate.now().format(dateFormatter)
         val stats = userStatsDao.getUserStatsOnce()
         if (stats == null) {
@@ -150,7 +150,7 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun uncompleteTask(taskId: Long) {
         val task = taskDao.getTaskById(taskId) ?: return
         if (!task.isCompleted) return
-        taskDao.setCompleted(taskId, false)
+        taskDao.setCompletion(taskId, false, null)
         subtractXP(XP_PER_TASK)
     }
 
@@ -180,12 +180,12 @@ class HabitRepositoryImpl @Inject constructor(
 
     private fun TaskEntity.toDomain() = Task(
         id = id, name = name, category = category,
-        isCompleted = isCompleted, createdAt = createdAt
+        isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt
     )
 
     private fun Task.toEntity() = TaskEntity(
         id = id, name = name, category = category,
-        isCompleted = isCompleted, createdAt = createdAt
+        isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt
     )
 
     private fun UserStatsEntity.toDomain() = UserStats(

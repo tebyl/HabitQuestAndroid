@@ -31,6 +31,7 @@ import androidx.navigation.compose.rememberNavController
 import com.habitquest.ui.screen.home.HomeScreen
 import com.habitquest.ui.screen.profile.ProfileScreen
 import com.habitquest.ui.screen.statistics.StatisticsScreen
+import com.habitquest.ui.screen.tasks.TasksCalendarScreen
 import com.habitquest.ui.theme.*
 
 data class NavItem(
@@ -61,9 +62,14 @@ fun NavGraph() {
             startDestination = Screen.Home.route,
             modifier = Modifier.weight(1f)
         ) {
-            composable(Screen.Home.route) { HomeScreen() }
+            composable(Screen.Home.route) {
+                HomeScreen(
+                    onOpenTasksCalendar = { navController.navigate(Screen.TasksCalendar.route) }
+                )
+            }
             composable(Screen.Progress.route) { StatisticsScreen() }
             composable(Screen.Profile.route) { ProfileScreen() }
+            composable(Screen.TasksCalendar.route) { TasksCalendarScreen() }
         }
 
         // Bottom navigation bar

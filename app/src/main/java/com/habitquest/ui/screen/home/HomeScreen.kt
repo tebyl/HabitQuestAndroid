@@ -14,7 +14,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,7 +49,8 @@ import java.util.Locale
 
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    onOpenTasksCalendar: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -60,7 +65,7 @@ fun HomeScreen(
         .filter { it.isNotEmpty() }
         .toSet()
 
-    val pendingTasks   = state.tasks.filter { !it.isCompleted }
+    val pendingTasks   = pendingTasksForHome(state.tasks)
     val completedTasks = state.tasks.filter { it.isCompleted }
     val habitsAtRisk   = state.habits.filter { it.streakCount > 0 && !it.completedToday }
     val currentStreak  = state.habits.maxOfOrNull { it.streakCount } ?: 0
@@ -388,24 +393,40 @@ fun HomeScreen(
                         color = TextMuted,
                         letterSpacing = 1.5.sp
                     )
-                    if (state.tasks.isNotEmpty()) {
-                        Text(
-                            text = "${completedTasks.size}/${state.tasks.size}",
-                            style = AppTypography.labelSmall,
-                            color = TextDim,
-                            fontSize = 11.sp
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        if (state.tasks.isNotEmpty()) {
+                            Text(
+                                text = "${completedTasks.size}/${state.tasks.size}",
+                                style = AppTypography.labelSmall,
+                                color = TextDim,
+                                fontSize = 11.sp
+                            )
+                        }
+                        IconButton(
+                            onClick = onOpenTasksCalendar,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarMonth,
+                                contentDescription = "Ver calendario",
+                                tint = Purple,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
                 Spacer(Modifier.height(10.dp))
             }
 
-            if (state.tasks.isEmpty()) {
+            if (pendingTasks.isEmpty()) {
                 item {
                     EmptyStateCard(
-                        icon     = "📋",
-                        title    = "Sin tareas aún",
-                        subtitle = "Toca + para agregar tu primera tarea",
+                        icon     = "✓",
+                        title    = "Todo listo por hoy",
+                        subtitle = "Tus tareas completadas quedaron guardadas en el calendario",
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
                     Spacer(Modifier.height(16.dp))
@@ -425,15 +446,6 @@ fun HomeScreen(
                             modifier     = Modifier.padding(horizontal = 20.dp)
                         )
                     }
-                    Spacer(Modifier.height(8.dp))
-                }
-                items(completedTasks, key = { "done_${it.id}" }) { task ->
-                    TaskCard(
-                        task         = task,
-                        onComplete   = viewModel::completeTask,
-                        onUncomplete = viewModel::uncompleteTask,
-                        modifier     = Modifier.padding(horizontal = 20.dp)
-                    )
                     Spacer(Modifier.height(8.dp))
                 }
             }
