@@ -113,15 +113,9 @@ fun ProfileHeaderCard(
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
                 Text(
-                    text = "LVL ${currentLevel.level} ${currentLevel.name}",
+                    text = "LVL ${currentLevel.level} · ${currentLevel.name}",
                     style = AppTypography.labelSmall,
                     color = currentLevel.color,
-                    fontSize = 11.sp
-                )
-                Text(
-                    text = currentLevel.name,
-                    style = AppTypography.labelSmall,
-                    color = currentLevel.color.copy(alpha = 0.8f),
                     fontSize = 11.sp
                 )
             }

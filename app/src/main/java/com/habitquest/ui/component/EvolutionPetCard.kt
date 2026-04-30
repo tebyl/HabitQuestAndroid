@@ -63,8 +63,10 @@ fun EvolutionPetCard(
                 contentAlignment = Alignment.Center
             ) {
                 PetAnimation(
+                    modifier = Modifier.size(128.dp),
                     animationRes = petAnimationResFor(petState.stage),
-                    modifier = Modifier.size(128.dp)
+                    stage = petState.stage,
+                    streak = petState.streak
                 )
             }
 
@@ -179,7 +181,7 @@ private fun PetMetric(
 
 @Composable
 private fun PetStage.stageColor(): Color = when (this) {
-    PetStage.EGG -> Gray
+    PetStage.EGG -> Color(0xFFCBB8FF)
     PetStage.BABY -> Emerald
     PetStage.EXPLORER -> Blue
     PetStage.GUARDIAN -> Purple

@@ -7,7 +7,7 @@ enum class PetStage(
     val icon: String,
     val phrase: String
 ) {
-    EGG("Semilla", 1, 0, "🌱", "Tu camino está por florecer"),
+    EGG("Semilla", 1, 0, "🌱", "Todo comienza aquí 🌱"),
     BABY("Brote", 2, 300, "🌷", "Cada pequeño hábito la hace crecer"),
     EXPLORER("Flor", 3, 800, "🌸", "Descubre nuevas rutinas contigo"),
     GUARDIAN("Aura", 4, 1500, "✨", "Protege tu constancia diaria"),

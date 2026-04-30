@@ -213,8 +213,10 @@ fun HomeScreen(
                                 .border(1.dp, Color.White.copy(alpha = 0.72f), CircleShape)
                         ) {
                             PetAnimation(
+                                modifier = Modifier.size(136.dp),
                                 animationRes = petAnimationResFor(petState.stage),
-                                modifier = Modifier.size(136.dp)
+                                stage = petState.stage,
+                                streak = petState.streak
                             )
                         }
                         HomeHeroMetric(
