@@ -204,11 +204,11 @@ fun HomeScreen(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .size(144.dp)
-                                .clip(CircleShape)
                                 .background(
                                     Brush.radialGradient(
                                         listOf(Color.White.copy(alpha = 0.98f), Purple.copy(alpha = 0.18f))
-                                    )
+                                    ),
+                                    CircleShape
                                 )
                                 .border(1.dp, Color.White.copy(alpha = 0.72f), CircleShape)
                         ) {

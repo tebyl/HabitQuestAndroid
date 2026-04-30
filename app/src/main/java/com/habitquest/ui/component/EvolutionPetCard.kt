@@ -57,8 +57,10 @@ fun EvolutionPetCard(
             Box(
                 modifier = Modifier
                     .size(140.dp)
-                    .clip(CircleShape)
-                    .background(Brush.radialGradient(listOf(Color.White, stageColor.copy(alpha = 0.20f))))
+                    .background(
+                        Brush.radialGradient(listOf(Color.White, stageColor.copy(alpha = 0.20f))),
+                        CircleShape
+                    )
                     .border(2.dp, Color.White.copy(alpha = 0.82f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
