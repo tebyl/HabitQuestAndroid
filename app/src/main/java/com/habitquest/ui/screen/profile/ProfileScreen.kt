@@ -78,10 +78,10 @@ fun ProfileScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Background),
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
-            CircularProgressIndicator(color = Amber)
+            CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
         }
         return
     }
@@ -100,20 +100,15 @@ fun ProfileScreen(
                     .padding(horizontal = 20.dp, vertical = 20.dp)
             ) {
                 Text(
-                    text = "TU ESPACIO",
+                    text = "TU PERFIL",
                     style = AppTypography.labelSmall,
-                    color = TextDim,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     letterSpacing = 1.5.sp
                 )
                 Text(
                     text = "Perfil",
                     style = AppTypography.headlineLarge,
-                    color = TextPrimary
-                )
-                Text(
-                    text = "Bienestar, ritmo y progreso.",
-                    style = AppTypography.bodyLarge,
-                    color = TextMuted
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
         }
@@ -124,6 +119,9 @@ fun ProfileScreen(
                 avatar      = state.userAvatar,
                 name        = state.userName,
                 currentLevel = state.currentLevel,
+                totalXP = state.totalXP,
+                currentStreak = state.maxStreak,
+                maxStreak = state.maxStreak,
                 rank        = state.rank,
                 onEditName  = viewModel::startEditingName,
                 onEditAvatar = viewModel::openAvatarPicker,
@@ -149,47 +147,30 @@ fun ProfileScreen(
         }
 
         // ── XP progress ───────────────────────────────────────────
-        item {
-            XpProgressCard(
-                currentLevel      = state.currentLevel,
-                xpInCurrentLevel  = state.xpInCurrentLevel,
-                xpToNextLevel     = state.xpToNextLevel,
-                totalXP           = state.totalXP,
-                modifier          = Modifier.padding(horizontal = 20.dp)
-            )
-            Spacer(Modifier.height(14.dp))
-        }
-
         // ── Stat summary row ──────────────────────────────────────
-        item {
-            StatSummaryRow(
-                totalXP         = state.totalXP,
-                currentLevelNum = state.currentLevel.level,
-                maxStreak       = state.maxStreak,
-                habitsCompleted = state.habits.count { it.streakCount > 0 },
-                modifier        = Modifier.padding(horizontal = 20.dp)
-            )
-            Spacer(Modifier.height(14.dp))
-        }
-
         // ── Rank progression ──────────────────────────────────────
-        item {
-            RankCard(
-                currentRank = state.rank,
-                modifier    = Modifier.padding(horizontal = 20.dp)
-            )
-            Spacer(Modifier.height(14.dp))
-        }
-
         // ── Achievements ──────────────────────────────────────────
         item {
-            Text(
-                text = "LOGROS",
-                style = AppTypography.labelSmall,
-                color = TextMuted,
-                letterSpacing = 1.sp,
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
+            val unlockedCount = state.achievements.count { it.unlocked }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "LOGROS",
+                    style = AppTypography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    letterSpacing = 1.sp
+                )
+                Text(
+                    text = "$unlockedCount/${state.achievements.size} desbloqueados",
+                    style = AppTypography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
             Spacer(Modifier.height(10.dp))
         }
 
@@ -229,40 +210,44 @@ fun ProfileScreen(
 
         // ── Settings ─────────────────────────────────────────────
         item {
+            Text(
+                text = "AJUSTES",
+                style = AppTypography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                letterSpacing = 1.sp,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+            Spacer(Modifier.height(10.dp))
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 20.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(CardBackground)
-                    .border(1.dp, com.habitquest.ui.theme.Divider, RoundedCornerShape(16.dp))
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
             ) {
                 SettingsRow(
                     icon  = "🔔",
                     label = "Notificaciones",
                     trailing = if (state.notificationsEnabled) "Activas" else "Inactivas",
-                    trailingColor = if (state.notificationsEnabled) Emerald else TextDim,
+                    trailingColor = if (state.notificationsEnabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                     onClick = {}
                 )
-                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
                 SettingsRow(
                     icon  = if (themeController.isDarkTheme) "🌙" else "☀️",
                     label = "Tema",
                     trailing = if (themeController.isDarkTheme) "Oscuro" else "Claro",
                     onClick = { themeController.setDarkTheme(!themeController.isDarkTheme) }
                 )
-                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, thickness = 1.dp)
                 SettingsRow(
                     icon = "♪",
                     label = "Sonido ambiental",
                     trailing = if (state.ambientSoundEnabled) "ON" else "OFF",
-                    trailingColor = if (state.ambientSoundEnabled) Emerald else TextDim,
+                    trailingColor = if (state.ambientSoundEnabled) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                     onClick = { viewModel.setAmbientSoundEnabled(!state.ambientSoundEnabled) }
                 )
-                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
-                SettingsRow(icon = "🗂️", label = "Categorías",   onClick = {})
-                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
-                SettingsRow(icon = "📤", label = "Exportar datos", onClick = {})
             }
             Spacer(Modifier.height(20.dp))
         }
@@ -272,7 +257,7 @@ fun ProfileScreen(
             Text(
                 text = "Hecho con Amor por Esteban R",
                 style = AppTypography.labelSmall,
-                color = TextMuted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -287,9 +272,10 @@ private fun SettingsRow(
     icon: String,
     label: String,
     trailing: String = "",
-    trailingColor: androidx.compose.ui.graphics.Color = TextDim,
+    trailingColor: androidx.compose.ui.graphics.Color? = null,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
@@ -302,17 +288,17 @@ private fun SettingsRow(
         Text(
             text = label,
             style = AppTypography.bodyLarge,
-            color = TextSecondary,
+            color = colors.onSurface,
             modifier = Modifier.weight(1f)
         )
         if (trailing.isNotEmpty()) {
             Text(
                 text = trailing,
                 style = AppTypography.labelSmall,
-                color = trailingColor
+                color = trailingColor ?: colors.onSurfaceVariant
             )
         }
-        Text(text = "›", color = DividerLight, fontSize = 16.sp)
+        Text(text = ">", color = colors.onSurfaceVariant, fontSize = 16.sp)
     }
 }
 
@@ -336,7 +322,7 @@ private fun AvatarPickerDialog(
             Text(
                 text = "Elige tu avatar",
                 style = AppTypography.headlineSmall,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         text = {
@@ -425,12 +411,12 @@ private fun EditNameDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
             Text(
                 text = "Editar nombre",
                 style = AppTypography.headlineSmall,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
         },
         text = {
@@ -444,8 +430,8 @@ private fun EditNameDialog(
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor   = Amber,
                     unfocusedBorderColor = com.habitquest.ui.theme.Divider,
-                    focusedTextColor     = TextPrimary,
-                    unfocusedTextColor   = TextSecondary,
+                    focusedTextColor     = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor   = MaterialTheme.colorScheme.onSurface,
                     cursorColor          = Amber
                 ),
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
@@ -459,7 +445,7 @@ private fun EditNameDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = TextDim, style = AppTypography.labelLarge)
+                Text("Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant, style = AppTypography.labelLarge)
             }
         }
     )

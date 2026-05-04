@@ -76,6 +76,7 @@ fun HabitCard(
 ) {
     val categoryColor = categoryColor(habit.category)
     val categoryIcon = categoryIconFor(habit.category)
+    val colors = MaterialTheme.colorScheme
     val outlineColor = MaterialTheme.colorScheme.outlineVariant
     val scope = rememberCoroutineScope()
     var showXP by remember { mutableStateOf(false) }
@@ -117,10 +118,10 @@ fun HabitCard(
             .alpha(completionAlpha)
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(if (habit.completedToday) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface)
+            .background(if (habit.completedToday) colors.surfaceVariant else colors.surface)
             .border(
                 1.dp,
-                if (habit.completedToday) MaterialTheme.colorScheme.secondary else outlineColor,
+                if (habit.completedToday) colors.secondary else outlineColor,
                 RoundedCornerShape(22.dp)
             )
             .clickable(
@@ -150,11 +151,11 @@ fun HabitCard(
                     .size(44.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
-                        MaterialTheme.colorScheme.surfaceVariant
+                        colors.surfaceVariant
                     )
                     .border(
                         1.dp,
-                        MaterialTheme.colorScheme.outlineVariant,
+                        colors.outlineVariant,
                         RoundedCornerShape(16.dp)
                     )
             ) {
@@ -174,7 +175,7 @@ fun HabitCard(
                     Text(
                         text = habit.name,
                         style = AppTypography.titleMedium,
-                        color = if (habit.completedToday) Emerald else TextPrimary
+                        color = if (habit.completedToday) colors.secondary else colors.onSurface
                     )
                     Text(
                         text = categoryLabel(habit.category).uppercase(),
@@ -183,7 +184,7 @@ fun HabitCard(
                         fontSize = 9.sp,
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .background(colors.surfaceVariant)
                             .padding(horizontal = 6.dp, vertical = 1.dp)
                     )
                 }
@@ -192,12 +193,12 @@ fun HabitCard(
                     Text(
                         text = "${habit.streakCount} dias de racha",
                         style = AppTypography.labelSmall,
-                        color = if (habit.streakCount >= 3) Red else TextDim
+                        color = if (habit.streakCount >= 3) colors.error else colors.onSurfaceVariant
                     )
                     Text(
                         text = "${habit.totalDays} total",
                         style = AppTypography.labelSmall,
-                        color = TextDimmer
+                        color = colors.onSurfaceVariant
                     )
                 }
             }
@@ -211,8 +212,8 @@ fun HabitCard(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(if (habit.completedToday) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface)
-                        .border(2.dp, if (habit.completedToday) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                        .background(if (habit.completedToday) colors.secondary else colors.surface)
+                        .border(2.dp, if (habit.completedToday) colors.secondary else colors.outlineVariant, CircleShape)
                 ) {
                     if (habit.completedToday) {
                         Text("✓", color = MaterialTheme.colorScheme.onSecondary, fontSize = 14.sp)
@@ -225,22 +226,22 @@ fun HabitCard(
                         modifier = Modifier
                             .size(34.dp)
                             .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .background(colors.surfaceVariant)
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.MoreVert,
                             contentDescription = "Opciones",
-                            tint = TextDim,
+                            tint = colors.onSurfaceVariant,
                             modifier = Modifier.size(20.dp)
                         )
                     }
                     DropdownMenu(
                         expanded = menuExpanded,
                         onDismissRequest = { menuExpanded = false },
-                        modifier = Modifier.background(CardBackground)
+                        modifier = Modifier.background(colors.surface)
                     ) {
                         DropdownMenuItem(
-                            text = { Text("Editar", style = AppTypography.bodyMedium, color = TextSecondary) },
+                            text = { Text("Editar", style = AppTypography.bodyMedium, color = colors.onSurface) },
                             leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null, tint = Purple) },
                             onClick = {
                                 menuExpanded = false

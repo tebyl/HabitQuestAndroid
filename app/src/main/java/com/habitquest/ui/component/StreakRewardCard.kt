@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -59,13 +59,14 @@ fun StreakRewardCard(
     val activeColor = nextMilestone?.color ?: Purple
     val bestUnlocked = streakMilestones.lastOrNull { bestStreakDays >= it.days }
     val remainingDays = nextMilestone?.let { (it.days - currentStreakDays).coerceAtLeast(0) }
+    val colors = MaterialTheme.colorScheme
 
     Column(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(Brush.linearGradient(listOf(Color.White.copy(alpha = 0.92f), Purple.copy(alpha = 0.10f))))
-            .border(1.dp, Color.White.copy(alpha = 0.72f), RoundedCornerShape(24.dp))
+            .background(colors.surface)
+            .border(1.dp, colors.outlineVariant, RoundedCornerShape(24.dp))
             .padding(18.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -101,16 +102,16 @@ fun StreakRewardCard(
                 )
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text = "${currentStreakDays} dias contigo \uD83D\uDCAB",
-                    style = AppTypography.titleMedium,
-                    color = TextPrimary
-                )
-                Text(
+                text = "${currentStreakDays} dias contigo \uD83D\uDCAB",
+                style = AppTypography.titleMedium,
+                color = colors.onSurface
+            )
+            Text(
                     text = remainingDays?.let { "Sigue creando tu rutina" }
                         ?: "Momento alcanzado: ${bestUnlocked?.reward ?: "Habito real"}",
-                    style = AppTypography.labelSmall,
-                    color = TextDim,
-                    fontSize = 11.sp
+                style = AppTypography.labelSmall,
+                color = colors.onSurfaceVariant,
+                fontSize = 11.sp
                 )
             }
         }
@@ -156,17 +157,18 @@ private fun StreakStat(
     color: Color,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(Color.White.copy(alpha = 0.62f))
-            .border(1.dp, color.copy(alpha = 0.12f), RoundedCornerShape(18.dp))
+            .background(colors.surfaceVariant)
+            .border(1.dp, colors.outlineVariant, RoundedCornerShape(18.dp))
             .padding(vertical = 10.dp, horizontal = 12.dp)
     ) {
         Text(
             text = label,
             style = AppTypography.labelSmall,
-            color = TextMuted,
+            color = colors.onSurfaceVariant,
             fontSize = 10.sp
         )
         Spacer(Modifier.height(2.dp))
@@ -185,6 +187,7 @@ private fun StreakMilestoneChip(
     isNext: Boolean,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     val color = if (unlocked || isNext) milestone.color else Gray
     val alpha = when {
         unlocked -> 1f
@@ -196,10 +199,10 @@ private fun StreakMilestoneChip(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = modifier
             .clip(RoundedCornerShape(18.dp))
-            .background(color.copy(alpha = if (unlocked) 0.18f else 0.06f))
+            .background(if (unlocked || isNext) colors.surfaceVariant else colors.surface)
             .border(
                 width = 1.dp,
-                color = color.copy(alpha = if (isNext) 0.42f else 0.18f),
+                color = if (isNext) color else colors.outlineVariant,
                 shape = RoundedCornerShape(18.dp)
             )
             .padding(vertical = 9.dp, horizontal = 4.dp)
@@ -228,9 +231,9 @@ private fun StreakMilestoneChip(
             textAlign = TextAlign.Center
         )
         Text(
-            text = if (unlocked) "Logrado" else "Por abrir",
-            style = AppTypography.labelSmall,
-            color = if (unlocked) Emerald else TextDimmer,
+                text = if (unlocked) "Logrado" else "Por abrir",
+                style = AppTypography.labelSmall,
+                color = if (unlocked) Emerald else colors.onSurfaceVariant,
             fontSize = 8.sp,
             textAlign = TextAlign.Center
         )

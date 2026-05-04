@@ -6,14 +6,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.ui.theme.*
@@ -26,6 +26,8 @@ fun DailyMissionCard(
 ) {
     val isAllDone = totalHabits > 0 && completedHabits == totalHabits
     val progress = if (totalHabits > 0) completedHabits.toFloat() / totalHabits else 0f
+    val colors = MaterialTheme.colorScheme
+    val accentColor = if (isAllDone) colors.secondary else colors.primary
     val animProgress by animateFloatAsState(
         targetValue = progress.coerceIn(0f, 1f),
         animationSpec = tween(800),
@@ -35,20 +37,15 @@ fun DailyMissionCard(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .shadow(
+                elevation = 8.dp,
+                shape = RoundedCornerShape(22.dp),
+                ambientColor = accentColor,
+                spotColor = accentColor
+            )
             .clip(RoundedCornerShape(22.dp))
-            .background(
-                Brush.linearGradient(
-                    if (isAllDone)
-                        listOf(Color.White.copy(alpha = 0.92f), Emerald.copy(alpha = 0.12f))
-                    else
-                        listOf(Color.White.copy(alpha = 0.86f), Amber.copy(alpha = 0.08f))
-                )
-            )
-            .border(
-                1.dp,
-                if (isAllDone) Emerald.copy(alpha = 0.24f) else Amber.copy(alpha = 0.18f),
-                RoundedCornerShape(22.dp)
-            )
+            .background(colors.surface)
+            .border(1.dp, colors.outlineVariant, RoundedCornerShape(22.dp))
             .padding(16.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(14.dp)
@@ -62,7 +59,7 @@ fun DailyMissionCard(
             Text(
                 text = "MISION DIARIA",
                 style = AppTypography.labelSmall,
-                color = if (isAllDone) Emerald else Amber,
+                color = accentColor,
                 letterSpacing = 1.sp,
                 fontSize = 9.sp
             )
@@ -70,36 +67,22 @@ fun DailyMissionCard(
             Text(
                 text = if (isAllDone) "Dia perfecto completado" else "Completa tu ritual de hoy",
                 style = AppTypography.titleMedium,
-                color = TextPrimary
+                color = colors.onSurface
             )
             Spacer(Modifier.height(8.dp))
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(5.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(Emerald.copy(alpha = 0.14f))
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(animProgress)
-                        .clip(RoundedCornerShape(3.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                if (isAllDone) listOf(Emerald, Emerald)
-                                else listOf(Amber, Orange)
-                            )
-                        )
-                )
-            }
+            NeonProgressBar(
+                progress = animProgress,
+                height = 6.dp,
+                startColor = accentColor,
+                endColor = if (isAllDone) colors.tertiary else colors.secondary
+            )
 
             Spacer(Modifier.height(5.dp))
             Text(
                 text = "$completedHabits / $totalHabits hábitos",
                 style = AppTypography.labelSmall,
-                color = TextDim,
+                color = colors.onSurfaceVariant,
                 fontSize = 11.sp
             )
         }

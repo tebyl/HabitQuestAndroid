@@ -5,6 +5,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
@@ -17,9 +18,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -32,6 +36,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -62,6 +68,7 @@ fun HomeScreen(
     onRequestExactAlarmPermission: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val themeController = LocalThemeController.current
     var editingHabit by remember { mutableStateOf<Habit?>(null) }
     var editingTask by remember { mutableStateOf<Task?>(null) }
     var habitPendingDelete by remember { mutableStateOf<Habit?>(null) }
@@ -148,6 +155,10 @@ fun HomeScreen(
                                 fontSize = 10.sp
                             )
                         }
+                        ThemeToggleButton(
+                            isDarkTheme = themeController.isDarkTheme,
+                            onToggle = { themeController.setDarkTheme(!themeController.isDarkTheme) }
+                        )
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
@@ -172,17 +183,19 @@ fun HomeScreen(
                 val completedCount = state.habits.count { it.completedToday }
                 val isComplete = completedCount == state.habits.size && state.habits.isNotEmpty()
 
-                Column(
+                PremiumSurfaceCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .clip(RoundedCornerShape(24.dp))
-                        .background(MaterialTheme.colorScheme.surface)
-                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
-                        .padding(horizontal = 22.dp, vertical = 24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                        .padding(horizontal = 20.dp),
+                    accentColor = MaterialTheme.colorScheme.primary,
+                    glow = true,
+                    radius = 28.dp
                 ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 22.dp, vertical = 24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = when {
@@ -216,6 +229,12 @@ fun HomeScreen(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .size(144.dp)
+                                .shadow(
+                                    elevation = 14.dp,
+                                    shape = CircleShape,
+                                    ambientColor = MaterialTheme.colorScheme.primary,
+                                    spotColor = MaterialTheme.colorScheme.primary
+                                )
                                 .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                                 .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         ) {
@@ -255,6 +274,7 @@ fun HomeScreen(
                             style = AppTypography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
+                    }
                     }
                 }
                 Spacer(Modifier.height(22.dp))
@@ -319,7 +339,7 @@ fun HomeScreen(
                                     "${it.icon} 🔥${it.streakCount}"
                                 },
                                 style = AppTypography.labelSmall,
-                                color = TextDim,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 11.sp
                             )
                         }
@@ -346,7 +366,7 @@ fun HomeScreen(
                     Text(
                         text = "HÁBITOS",
                         style = AppTypography.labelSmall,
-                        color = TextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.5.sp,
                         modifier = Modifier.padding(horizontal = 20.dp)
                     )
@@ -390,7 +410,7 @@ fun HomeScreen(
                     Text(
                         text = "TAREAS",
                         style = AppTypography.labelSmall,
-                        color = TextMuted,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         letterSpacing = 1.5.sp
                     )
                     Row(
@@ -401,7 +421,7 @@ fun HomeScreen(
                             Text(
                                 text = "$completedTaskCount/${state.tasks.size}",
                                 style = AppTypography.labelSmall,
-                                color = TextDim,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 fontSize = 11.sp
                             )
                         }
@@ -418,13 +438,13 @@ fun HomeScreen(
                             Text(
                                 text = "Ver calendario",
                                 style = AppTypography.labelSmall,
-                                color = Purple,
+                                color = MaterialTheme.colorScheme.primary,
                                 fontSize = 11.sp
                             )
                             Icon(
                                 imageVector = Icons.Filled.CalendarMonth,
                                 contentDescription = "Ver calendario",
-                                tint = Purple,
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(24.dp)
                             )
                         }
@@ -510,6 +530,22 @@ fun HomeScreen(
                 }
             }
         }
+
+        // RewardBanner (temporary, top-center)
+        AnimatedVisibility(
+            visible = state.rewardBanner != null,
+            enter = fadeIn(tween(280)) + slideInVertically(tween(320)) { -it },
+            exit = fadeOut(tween(220)) + slideOutVertically(tween(260)) { -it },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .statusBarsPadding()
+                .padding(top = 8.dp)
+                .zIndex(20f)
+        ) {
+            state.rewardBanner?.let { b ->
+                RewardBanner(primary = b.primary, secondary = b.secondary, modifier = Modifier.padding(horizontal = 12.dp))
+            }
+        }
     }
 
     // Quick-add bottom sheet
@@ -570,12 +606,12 @@ private fun DeleteConfirmDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = CardBackground,
+        containerColor = MaterialTheme.colorScheme.surface,
         title = {
-            Text(title, style = AppTypography.titleMedium, color = TextPrimary)
+            Text(title, style = AppTypography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         },
         text = {
-            Text("Esta acción no se puede deshacer.", style = AppTypography.bodyMedium, color = TextDim)
+            Text("Esta accion no se puede deshacer.", style = AppTypography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {
@@ -584,7 +620,7 @@ private fun DeleteConfirmDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar", color = TextDim, style = AppTypography.labelLarge)
+                Text("Cancelar", color = MaterialTheme.colorScheme.onSurfaceVariant, style = AppTypography.labelLarge)
             }
         }
     )
@@ -615,6 +651,30 @@ private fun HomeHeroMetric(
             style = AppTypography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 8.sp
+        )
+    }
+}
+
+@Composable
+private fun ThemeToggleButton(
+    isDarkTheme: Boolean,
+    onToggle: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val description = if (isDarkTheme) "Cambiar a tema claro" else "Cambiar a tema oscuro"
+    IconButton(
+        onClick = onToggle,
+        modifier = Modifier
+            .size(38.dp)
+            .clip(CircleShape)
+            .background(colors.surfaceVariant)
+            .border(1.dp, colors.outlineVariant, CircleShape)
+    ) {
+        Icon(
+            imageVector = if (isDarkTheme) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+            contentDescription = description,
+            tint = colors.onSurface,
+            modifier = Modifier.size(19.dp)
         )
     }
 }

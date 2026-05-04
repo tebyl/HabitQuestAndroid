@@ -44,6 +44,7 @@ class HomeViewModel @Inject constructor(
         val userAvatar: String = DEFAULT_AVATAR,
         val userName: String = "Tu espacio",
         val toast: ToastState? = null,
+        val rewardBanner: RewardBannerState? = null,
         val petReactionState: PetReactionState = PetReactionState.IDLE,
         val showQuickAdd: Boolean = false,
         val isLoading: Boolean = true
@@ -52,6 +53,10 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
     private var petReactionJob: Job? = null
+    // Track achievements shown during this session to avoid spam (not persisted)
+    private val unlockedAchievementIdsShown = mutableSetOf<Int>()
+
+    data class RewardBannerState(val primary: String, val secondary: String? = null)
 
     init {
         viewModelScope.launch { repository.resetDailyHabitsIfNeeded() }
@@ -106,10 +111,22 @@ class HomeViewModel @Inject constructor(
                 ToastState("+$xpGained XP${if (xpGained > 50) " (bonus racha!)" else ""}")
             }
 
-            _uiState.update { it.copy(toast = toast) }
+            // compute newly unlocked achievements and show a temporary RewardBanner
+            val newly = com.habitquest.domain.gamification.AchievementPolicy.newlyUnlocked(previousSnapshot, currentSnapshot)
+            val unseen = newly.filter { !unlockedAchievementIdsShown.contains(it.id) }
+            if (unseen.isNotEmpty()) {
+                // mark as shown for this session
+                unlockedAchievementIdsShown.addAll(unseen.map { it.id })
+                val titles = unseen.joinToString(", ") { it.title }
+                val banner = RewardBannerState(primary = "+$xpGained XP", secondary = "¡Logro desbloqueado! $titles")
+                _uiState.update { it.copy(toast = toast, rewardBanner = banner) }
+            } else {
+                _uiState.update { it.copy(toast = toast) }
+            }
+
             emitPetReaction(PetReactionPolicy.detect(previousSnapshot, currentSnapshot))
-            delay(2000)
-            _uiState.update { it.copy(toast = null) }
+            delay(2_000)
+            _uiState.update { it.copy(toast = null, rewardBanner = null) }
         }
     }
 
@@ -154,10 +171,20 @@ class HomeViewModel @Inject constructor(
                 ToastState("+${HabitRepositoryImpl.XP_PER_TASK} XP · Tarea completada ✅")
             }
 
-            _uiState.update { it.copy(toast = toast) }
+            val newly = com.habitquest.domain.gamification.AchievementPolicy.newlyUnlocked(previousSnapshot, currentSnapshot)
+            val unseen = newly.filter { !unlockedAchievementIdsShown.contains(it.id) }
+            if (unseen.isNotEmpty()) {
+                unlockedAchievementIdsShown.addAll(unseen.map { it.id })
+                val titles = unseen.joinToString(", ") { it.title }
+                val banner = RewardBannerState(primary = "+${HabitRepositoryImpl.XP_PER_TASK} XP", secondary = "¡Logro desbloqueado! $titles")
+                _uiState.update { it.copy(toast = toast, rewardBanner = banner) }
+            } else {
+                _uiState.update { it.copy(toast = toast) }
+            }
+
             emitPetReaction(PetReactionPolicy.detect(previousSnapshot, currentSnapshot))
-            delay(2000)
-            _uiState.update { it.copy(toast = null) }
+            delay(2_000)
+            _uiState.update { it.copy(toast = null, rewardBanner = null) }
         }
     }
 

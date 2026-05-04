@@ -271,14 +271,14 @@ fun HabitCreateSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = CardBackground,
+        containerColor = MaterialTheme.colorScheme.surface,
         dragHandle = {
             Box(
                 modifier = Modifier
                     .padding(vertical = 10.dp)
                     .size(width = 42.dp, height = 4.dp)
                     .clip(RoundedCornerShape(2.dp))
-                    .background(DividerLight)
+                    .background(MaterialTheme.colorScheme.outlineVariant)
             )
         }
     ) {
@@ -400,8 +400,8 @@ fun HabitCreateSheet(
                             permissionGranted = notificationPermissionGranted,
                             exactAlarmAllowed = exactAlarmPermissionGranted,
                             showPermissionHint = showNotificationPermissionHint,
-                            showDebugTest = debugBuild,
-                            onTestNow = if (debugBuild && notificationPermissionGranted) {
+                            showDebugTest = debugBuild && SHOW_REMINDER_DEBUG_ACTIONS,
+                            onTestNow = if (debugBuild && SHOW_REMINDER_DEBUG_ACTIONS && notificationPermissionGranted) {
                                 {
                                     Log.d(TAG, "Instant notification test fired")
                                     NotificationHelper.showTaskReminder(context, DEBUG_TEST_NOTIF_ID, "Prueba de notificación HabitQuest")
@@ -521,7 +521,7 @@ fun HabitCreateSheet(
                 }
             },
             text = { TimePicker(state = timePickerState) },
-            containerColor = CardBackground
+            containerColor = MaterialTheme.colorScheme.surface
         )
     }
 
@@ -544,6 +544,7 @@ fun HabitCreateSheet(
 }
 
 private const val TAG = "HabitCreateSheet"
+private const val SHOW_REMINDER_DEBUG_ACTIONS = false
 private const val DEBUG_TEST_NOTIF_ID = 99_999L
 internal const val TASK_REMINDER_MIN_SAFE_DELAY_MILLIS = 60_000L
 
@@ -586,12 +587,12 @@ private fun SheetHeader(
         Text(
             text = title,
             style = AppTypography.headlineMedium,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onSurface
         )
         Text(
             text = subtitle,
             style = AppTypography.bodyMedium,
-            color = TextMuted
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -606,7 +607,7 @@ private fun TypeTabs(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(CardBackground2.copy(alpha = 0.86f))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
             .padding(4.dp),
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
@@ -664,7 +665,7 @@ private fun SectionCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(CardBackground2.copy(alpha = 0.58f))
+            .background(MaterialTheme.colorScheme.surface)
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -673,7 +674,7 @@ private fun SectionCard(
             Text(
                 text = it,
                 style = AppTypography.labelSmall,
-                color = TextMuted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp
             )
         }
@@ -774,10 +775,10 @@ private fun TaskReminderSelector(
             modifier = Modifier
                 .weight(1f)
                 .clip(RoundedCornerShape(18.dp))
-                .background(if (timeText == null) CardBackground.copy(alpha = 0.72f) else Purple.copy(alpha = 0.10f))
+                .background(if (timeText == null) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.primaryContainer)
                 .border(
                     1.dp,
-                    if (timeText == null) Divider else Purple.copy(alpha = 0.34f),
+                    if (timeText == null) MaterialTheme.colorScheme.outlineVariant else MaterialTheme.colorScheme.primary,
                     RoundedCornerShape(18.dp)
                 )
                 .clickable(onClick = onPickTime)
@@ -788,13 +789,13 @@ private fun TaskReminderSelector(
             Icon(
                 imageVector = Icons.Rounded.Schedule,
                 contentDescription = null,
-                tint = if (timeText == null) TextDim else Purple,
+                tint = if (timeText == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(18.dp)
             )
             Text(
                 text = timeText?.let { "Recordarme a las $it" } ?: "Recordarme a las...",
                 style = AppTypography.labelSmall,
-                color = if (timeText == null) TextDim else Purple,
+                color = if (timeText == null) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.primary,
                 fontSize = 11.sp
             )
         }
@@ -804,15 +805,15 @@ private fun TaskReminderSelector(
                 modifier = Modifier
                     .size(42.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(CardBackground.copy(alpha = 0.72f))
-                    .border(1.dp, Divider, RoundedCornerShape(16.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
                     .clickable(onClick = onClearTime),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Rounded.NotificationsOff,
                     contentDescription = "Quitar recordatorio",
-                    tint = TextDim,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.size(18.dp)
                 )
             }

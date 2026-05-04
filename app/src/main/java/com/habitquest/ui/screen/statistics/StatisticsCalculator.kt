@@ -22,6 +22,7 @@ data class StatisticsSnapshot(
     val weeklyHabits: List<DayStats>,
     val weeklyTasks: List<DayStats>,
     val weeklyXP: List<DayStats>,
+    val activity14Days: List<DayStats>,
     val categoryBreakdown: Map<String, Int>,
     val streaks: List<HabitStreak>,
     val totalHabitsCompleted: Int,
@@ -40,27 +41,43 @@ object StatisticsCalculator {
         today: LocalDate = LocalDate.now(),
         zoneId: ZoneId = ZoneId.systemDefault()
     ): StatisticsSnapshot {
-        val weeklyHabits = (6 downTo 0).map { daysAgo ->
-            val date = today.minusDays(daysAgo.toLong())
+        fun completedHabitsOn(date: LocalDate): List<Habit> {
             val dateStr = date.format(dateFormatter)
-            val completed = if (daysAgo == 0) {
+            return if (date == today) {
                 habits.filter { it.completedToday }
             } else {
                 habits.filter { it.lastCompletedDate == dateStr }
             }
+        }
+
+        fun completedTasksOn(date: LocalDate): List<Task> {
+            return tasks.filter { task ->
+                val completedAt = task.completedAt ?: return@filter false
+                val taskDate = Instant.ofEpochMilli(completedAt).atZone(zoneId).toLocalDate()
+                task.isCompleted && taskDate == date
+            }
+        }
+
+        val weeklyHabits = (6 downTo 0).map { daysAgo ->
+            val date = today.minusDays(daysAgo.toLong())
+            val completed = completedHabitsOn(date)
             val xp = completed.sumOf { HabitRepositoryImpl.xpForCategory(it.category) }
             DayStats(date = date, count = completed.size, xp = xp)
         }
 
         val weeklyTasks = (6 downTo 0).map { daysAgo ->
             val date = today.minusDays(daysAgo.toLong())
-            val count = tasks.count { task ->
-                val completedAt = task.completedAt ?: return@count false
-                val taskDate = Instant.ofEpochMilli(completedAt)
-                    .atZone(zoneId).toLocalDate()
-                task.isCompleted && taskDate == date
-            }
+            val count = completedTasksOn(date).size
             DayStats(date = date, count = count)
+        }
+
+        val activity14Days = (13 downTo 0).map { daysAgo ->
+            val date = today.minusDays(daysAgo.toLong())
+            val completedHabits = completedHabitsOn(date)
+            val completedTasks = completedTasksOn(date)
+            val xp = completedHabits.sumOf { HabitRepositoryImpl.xpForCategory(it.category) } +
+                completedTasks.size * HabitRepositoryImpl.XP_PER_TASK
+            DayStats(date = date, count = completedHabits.size + completedTasks.size, xp = xp)
         }
 
         val categoryBreakdown = habits
@@ -86,6 +103,7 @@ object StatisticsCalculator {
             weeklyHabits = weeklyHabits,
             weeklyTasks = weeklyTasks,
             weeklyXP = weeklyHabits,
+            activity14Days = activity14Days,
             categoryBreakdown = categoryBreakdown,
             streaks = streaks,
             totalHabitsCompleted = completedToday,

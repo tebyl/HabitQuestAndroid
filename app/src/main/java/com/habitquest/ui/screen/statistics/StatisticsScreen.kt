@@ -1,255 +1,149 @@
 package com.habitquest.ui.screen.statistics
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.habitquest.ui.component.*
-import com.habitquest.ui.screen.home.categoryColor as appCategoryColor
-import com.habitquest.ui.screen.home.categoryLabel as appCategoryLabel
-import com.habitquest.ui.theme.*
+import com.habitquest.ui.component.PremiumSurfaceCard
+import com.habitquest.ui.component.StatSummaryCard
+import com.habitquest.ui.theme.AppTypography
 
 @Composable
 fun StatisticsScreen(
     viewModel: StatisticsViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val currentStreak = state.streaks.firstOrNull()?.streak ?: 0
+    val hasAnyData = state.totalXP > 0 || state.totalHabitsCompleted > 0 || state.totalTasksCompleted > 0 || state.categoryBreakdown.isNotEmpty() || state.activity14Days.any { it.count > 0 }
+    val completedTotal = state.totalHabitsCompleted + state.totalTasksCompleted
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
-        contentPadding = PaddingValues(bottom = 24.dp)
+        contentPadding = PaddingValues(bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // ── Header ───────────────────────────────────────────────
         item {
-            Column(
+            PremiumSurfaceCard(
                 modifier = Modifier
-                    .statusBarsPadding()
-                    .padding(horizontal = 20.dp, vertical = 20.dp)
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 22.dp),
+                radius = 28.dp,
+                accentColor = MaterialTheme.colorScheme.primary,
+                glow = true
             ) {
+                Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     text = "TU PROGRESO",
                     style = AppTypography.labelSmall,
-                    color = TextDim,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     letterSpacing = 1.5.sp
                 )
+                Spacer(Modifier.height(6.dp))
                 Text(
-                    text = "Estadísticas",
+                    text = "Estadisticas",
                     style = AppTypography.headlineLarge,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
-        }
+                }
+            }
 
-        // ── Summary cards ─────────────────────────────────────────
         item {
-            val completionPct = (state.completionRateToday * 100).toInt()
             Column(
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(horizontal = 20.dp)
+                modifier = Modifier.padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     StatSummaryCard(
-                        icon       = "⚡",
-                        value      = "${state.totalXP} XP",
-                        label      = "Total ganado",
-                        tintColor  = Amber,
-                        modifier   = Modifier.weight(1f)
+                        icon = "🔥",
+                        value = currentStreak.toString(),
+                        unit = "d",
+                        label = "Racha actual",
+                        tintColor = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.weight(1f)
                     )
                     StatSummaryCard(
-                        icon       = "🔥",
-                        value      = "${state.maxStreak}d",
-                        label      = "Racha máxima",
-                        tintColor  = Red,
-                        modifier   = Modifier.weight(1f)
+                        icon = "⚡",
+                        value = state.totalXP.toString(),
+                        unit = "XP",
+                        label = "XP total",
+                        tintColor = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.weight(1f)
                     )
                 }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.fillMaxWidth()) {
                     StatSummaryCard(
-                        icon       = "✅",
-                        value      = "$completionPct%",
-                        label      = "Completado hoy",
-                        tintColor  = Emerald,
-                        modifier   = Modifier.weight(1f)
+                        icon = "🏁",
+                        value = state.maxStreak.toString(),
+                        unit = "d",
+                        label = "Mejor racha",
+                        tintColor = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.weight(1f)
                     )
                     StatSummaryCard(
-                        icon       = "📋",
-                        value      = "${state.totalTasksCompleted}",
-                        label      = "Tareas hechas",
-                        tintColor  = Blue,
-                        modifier   = Modifier.weight(1f)
+                        icon = "✅",
+                        value = completedTotal.toString(),
+                        label = "Completados",
+                        tintColor = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
-            Spacer(Modifier.height(20.dp))
         }
 
-        // ── Weekly habits bar chart ───────────────────────────────
-        item {
-            SectionCard(title = "HÁBITOS ESTA SEMANA") {
-                if (state.weeklyHabits.isEmpty()) {
-                    Text(
-                        text = "Sin datos aún",
-                        style = AppTypography.bodyMedium,
-                        color = TextDimmer
-                    )
-                } else {
-                    WeeklyBarChart(
-                        data     = state.weeklyHabits.map { it.date to it.count },
-                        barColor = Amber
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-        }
-
-        // ── Weekly tasks bar chart ────────────────────────────────
-        item {
-            SectionCard(title = "TAREAS CREADAS") {
-                if (state.weeklyTasks.isEmpty()) {
-                    Text(
-                        text = "Sin datos aún",
-                        style = AppTypography.bodyMedium,
-                        color = TextDimmer
-                    )
-                } else {
-                    WeeklyBarChart(
-                        data     = state.weeklyTasks.map { it.date to it.count },
-                        barColor = Blue
-                    )
-                }
-            }
-            Spacer(Modifier.height(14.dp))
-        }
-
-        // ── Category pie chart ────────────────────────────────────
-        item {
-            val segments = state.categoryBreakdown.entries.map { (cat, count) ->
-                PieSegment(
-                    label = categoryLabel(cat),
-                    value = count,
-                    color = categoryColor(cat)
+        if (!hasAnyData) {
+            item {
+                EmptyStatsState(
+                    message = "Completa hábitos o tareas para construir tu progreso",
+                    modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
-            if (segments.isNotEmpty()) {
-                SectionCard(title = "DISTRIBUCIÓN POR CATEGORÍA") {
-                    CategoryPieChart(
-                        segments   = segments,
-                        centerText = "${state.totalHabits}"
-                    )
-                }
-                Spacer(Modifier.height(14.dp))
-            }
         }
 
-        // ── Active streaks list ───────────────────────────────────
         item {
-            if (state.streaks.isNotEmpty()) {
-                SectionCard(title = "RACHAS ACTIVAS") {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        state.streaks.take(5).forEach { streak ->
-                            StreakRow(streak = streak)
-                        }
-                    }
-                }
-                Spacer(Modifier.height(14.dp))
-            }
-        }
-    }
-}
-
-@Composable
-private fun SectionCard(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 20.dp)
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text(
-            text = title,
-            style = AppTypography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 1.sp
-        )
-        content()
-    }
-}
-
-@Composable
-private fun StreakRow(streak: HabitStreak) {
-    val color = categoryColor(streak.category)
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Text(text = streak.icon, fontSize = 20.sp)
-        Text(
-            text = streak.name,
-            style = AppTypography.bodyMedium,
-            color = TextSecondary,
-            modifier = Modifier.weight(1f)
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Text("🔥", fontSize = 12.sp)
-            Text(
-                text = "${streak.streak}d",
-                style = AppTypography.labelLarge,
-                color = color,
-                fontSize = 12.sp
+            WeeklyProgressCard(
+                weeklyHabits = state.weeklyHabits,
+                weeklyTasks = state.weeklyTasks,
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
         }
+
+        item {
+            CategoryBreakdownCard(
+                categoryBreakdown = state.categoryBreakdown,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+        }
+
+        item {
+            ActivityCalendarCard(
+                activity14Days = state.activity14Days,
+                totalXP = state.totalXP,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
+        }
+
+        item {
+            Spacer(Modifier.height(6.dp))
+        }
     }
-}
-
-private fun categoryLabel(category: String): String = when (category) {
-    "salud_mental"  -> "Mente"
-    "salud_fisica"  -> "Física"
-    "desarrollo"    -> "Desarrollo"
-    "productividad" -> "Productividad"
-    "vida_diaria"   -> "Diario"
-    "gamificacion"  -> "Juego"
-    else            -> appCategoryLabel(category)
-}
-
-private fun categoryColor(category: String) = when (category) {
-    "salud_mental"  -> Purple
-    "salud_fisica"  -> Emerald
-    "desarrollo"    -> Blue
-    "productividad" -> Amber
-    "vida_diaria"   -> Orange
-    "gamificacion"  -> Rose
-    else            -> appCategoryColor(category)
 }

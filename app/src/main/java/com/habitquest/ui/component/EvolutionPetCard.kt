@@ -33,6 +33,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
@@ -79,24 +80,22 @@ fun EvolutionPetCard(
         label = "petEvolutionProgress"
     )
 
-    Column(
+    PremiumSurfaceCard(
         modifier = modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(MaterialTheme.colorScheme.surface)
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.outlineVariant,
-                shape = RoundedCornerShape(24.dp)
-            )
-            .padding(20.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+            .fillMaxWidth(),
+        accentColor = stageColor,
+        glow = true,
+        radius = 28.dp
     ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         Text(
             text = "Tu companera de viaje",
             style = AppTypography.titleMedium,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Row(
@@ -174,14 +173,14 @@ fun EvolutionPetCard(
                 Text(
                     text = petState.stage.stageTitle(),
                     style = AppTypography.headlineMedium,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.onSurface
                 )
 
                 Text(
                     text = PetReactionPolicy.messageFor(reactionState)
                         ?: petState.stage.stageNarrative(),
                     style = AppTypography.bodyMedium,
-                    color = if (reactionState == PetReactionState.IDLE) TextSecondary else stageColor
+                    color = if (reactionState == PetReactionState.IDLE) MaterialTheme.colorScheme.onSurfaceVariant else stageColor
                 )
             }
         }
@@ -196,7 +195,7 @@ fun EvolutionPetCard(
                     text = petState.nextStage?.let { "Proxima evolucion: ${it.label}" }
                         ?: "Evolucion completa",
                     style = AppTypography.labelSmall,
-                    color = TextMuted,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontSize = 10.sp
                 )
                 Text(
@@ -211,25 +210,15 @@ fun EvolutionPetCard(
             Text(
                 text = petState.nextStageRequirementText,
                 style = AppTypography.labelSmall,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp
             )
 
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .fillMaxWidth(progress)
-                        .clip(RoundedCornerShape(4.dp))
-                        .background(MaterialTheme.colorScheme.primary)
-                )
-            }
+            NeonProgressBar(
+                progress = progress,
+                startColor = stageColor,
+                endColor = MaterialTheme.colorScheme.tertiary
+            )
         }
 
         StageUnlocks(
@@ -259,6 +248,7 @@ fun EvolutionPetCard(
                 color = Emerald,
                 modifier = Modifier.weight(1f)
             )
+        }
         }
     }
 }

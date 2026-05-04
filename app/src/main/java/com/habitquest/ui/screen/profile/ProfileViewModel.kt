@@ -158,13 +158,36 @@ class ProfileViewModel @Inject constructor(
         levelNum: Int,
         tasksCompleted: Int,
         maxStreak: Int
-    ): List<ProfileAchievement> = listOf(
-        ProfileAchievement(1, "Primer paso",       "Completa tu primer hábito",        "🌱", habits.any { it.totalDays >= 1 }),
-        ProfileAchievement(2, "Ritmo de 7 días",   "Mantén tu constancia una semana",  "💗", maxStreak >= 7, if (maxStreak >= 7) null else "$maxStreak/7"),
-        ProfileAchievement(3, "Rutina organizada", "Completa 10 tareas",               "✅", tasksCompleted >= 10, if (tasksCompleted >= 10) null else "$tasksCompleted/10"),
-        ProfileAchievement(4, "Nueva versión",     "Alcanza una nueva etapa",          "👑", levelNum >= 5, if (levelNum >= 5) null else "$levelNum/5"),
-        ProfileAchievement(5, "Energía acumulada", "Suma 1000 puntos de progreso",     "✨", totalXP >= 1000, if (totalXP >= 1000) null else "$totalXP/1000"),
-    )
+    ): List<ProfileAchievement> {
+        val snapshot = com.habitquest.domain.gamification.PetReactionSnapshot(
+            totalXP = totalXP,
+            level = levelNum,
+            streak = maxStreak,
+            completedHabits = habits.sumOf { it.totalDays },
+            completedTasks = tasksCompleted
+        )
+
+        return com.habitquest.domain.gamification.AchievementPolicy.evaluate(snapshot).map {
+            ProfileAchievement(
+                id = it.id,
+                title = it.title,
+                description = it.description,
+                icon = it.icon,
+                unlocked = it.unlocked,
+                progressText = if (!it.unlocked) {
+                    // small human-friendly progress
+                    when (it.id) {
+                        1 -> "${it.progress}/${it.target}"
+                        2 -> "${it.progress}/${it.target}"
+                        3 -> "${it.progress}/${it.target}"
+                        4 -> "${it.progress}/${it.target}"
+                        5 -> "${it.progress}/${it.target}"
+                        else -> null
+                    }
+                } else null
+            )
+        }
+    }
 
     fun startEditingName() {
         _uiState.update { it.copy(isEditingName = true, editNameDraft = it.userName) }

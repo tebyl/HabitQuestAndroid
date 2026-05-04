@@ -20,31 +20,31 @@ data class AppColorPalette(
 )
 
 internal val DarkPalette = AppColorPalette(
-	background = Color(0xFF111318),
-	surface = Color(0xFF181B22),
-	cardBackground = Color(0xFF1E222B),
-	cardBackground2 = Color(0xFF282D38),
-	divider = Color(0xFF3C4250),
-	dividerLight = Color(0xFF535B6C),
-	textPrimary = Color(0xFFF4F6FA),
-	textSecondary = Color(0xFFD6DBE5),
-	textMuted = Color(0xFFA8B0C0),
-	textDim = Color(0xFF828B9D),
-	textDimmer = Color(0xFF687284),
+	background = Color(0xFF090B12),
+	surface = Color(0xFF131722),
+	cardBackground = Color(0xFF171B28),
+	cardBackground2 = Color(0xFF202638),
+	divider = Color(0xFF343B50),
+	dividerLight = Color(0xFF59627C),
+	textPrimary = Color(0xFFF7F8FF),
+	textSecondary = Color(0xFFDDE3F3),
+	textMuted = Color(0xFFAEB8D0),
+	textDim = Color(0xFF8B95AD),
+	textDimmer = Color(0xFF707A92),
 )
 
 internal val LightPalette = AppColorPalette(
-	background = Color(0xFFFAFAFB),
+	background = Color(0xFFF7F7FB),
 	surface = Color(0xFFFFFFFF),
 	cardBackground = Color(0xFFFFFFFF),
-	cardBackground2 = Color(0xFFF3F4F6),
-	divider = Color(0xFFE1E4EA),
-	dividerLight = Color(0xFFC9CED8),
-	textPrimary = Color(0xFF20242A),
-	textSecondary = Color(0xFF454B55),
-	textMuted = Color(0xFF69717D),
-	textDim = Color(0xFF8A929E),
-	textDimmer = Color(0xFFA5ACB6),
+	cardBackground2 = Color(0xFFF0F2F8),
+	divider = Color(0xFFDDE2ED),
+	dividerLight = Color(0xFFC6CDDB),
+	textPrimary = Color(0xFF151821),
+	textSecondary = Color(0xFF3F4654),
+	textMuted = Color(0xFF687284),
+	textDim = Color(0xFF8791A1),
+	textDimmer = Color(0xFFA1AABC),
 )
 
 internal val LocalAppColors = staticCompositionLocalOf { DarkPalette }
@@ -81,15 +81,15 @@ val DividerLight: Color
 
 val Amber            = Color(0xFFF4C766)
 val AmberDark        = Color(0xFFC98B3A)
-val Red              = Color(0xFFFF8A7A)
-val Emerald          = Color(0xFF7ED957)
+val Red              = Color(0xFFFF6F91)
+val Emerald          = Color(0xFF55E6A5)
 val EmeraldDark      = Color(0xFF5FAE45)
-val Orange           = Color(0xFFFF8A7A)
+val Orange           = Color(0xFFFF9F5A)
 val Rose             = Color(0xFFF43F5E)
-val Blue             = Color(0xFF8FB8F6)
-val Purple           = Color(0xFFB8A1FF)
-val PurpleDark       = Color(0xFFC8B6FF)
-val BlueDark         = Color(0xFF9CC6FF)
+val Blue             = Color(0xFF6EA8FF)
+val Purple           = Color(0xFF9B7CFF)
+val PurpleDark       = Color(0xFFC2A7FF)
+val BlueDark         = Color(0xFF78D7FF)
 val EmeraldDarkTheme = Color(0xFF93E86E)
 val Gray             = Color(0xFF6B7280)
 val WarmGray         = Color(0xFF78716C)

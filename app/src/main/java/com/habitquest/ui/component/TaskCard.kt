@@ -69,6 +69,7 @@ fun TaskCard(
 ) {
     val catColor = categoryColor(task.category)
     val categoryIcon = categoryIconFor(task.category)
+    val colors = MaterialTheme.colorScheme
     val scheduledDate = remember(task.scheduledDate) {
         task.scheduledDate?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
     }
@@ -87,11 +88,11 @@ fun TaskCard(
     }
     var menuExpanded by remember { mutableStateOf(false) }
     val bgColor by animateColorAsState(
-        targetValue = if (task.isCompleted) CardBackground2 else CardBackground,
+        targetValue = if (task.isCompleted) colors.surfaceVariant else colors.surface,
         animationSpec = tween(300),
         label = "task_bg"
     )
-    val outlineColor = MaterialTheme.colorScheme.outlineVariant
+    val outlineColor = colors.outlineVariant
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -101,7 +102,7 @@ fun TaskCard(
             .background(bgColor)
             .border(
                 1.dp,
-                if (task.isCompleted) MaterialTheme.colorScheme.secondary else outlineColor,
+                if (task.isCompleted) colors.secondary else outlineColor,
                 RoundedCornerShape(20.dp)
             )
             .clickable {
@@ -115,8 +116,8 @@ fun TaskCard(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant)
-                .border(1.dp, if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant, CircleShape)
+                .background(if (task.isCompleted) colors.secondary else colors.surfaceVariant)
+                .border(1.dp, if (task.isCompleted) colors.secondary else colors.outlineVariant, CircleShape)
         ) {
             if (task.isCompleted) {
                 Text("✓", color = MaterialTheme.colorScheme.onSecondary, fontSize = 14.sp)
@@ -134,7 +135,7 @@ fun TaskCard(
             Text(
                 text = task.name,
                 style = AppTypography.bodyLarge,
-                color = if (task.isCompleted) TextDim else TextSecondary,
+                color = if (task.isCompleted) colors.onSurfaceVariant else colors.onSurface,
                 textDecoration = if (task.isCompleted) TextDecoration.LineThrough else TextDecoration.None
             )
             Spacer(Modifier.height(3.dp))
@@ -145,7 +146,7 @@ fun TaskCard(
                     reminderLabel?.let { "Recordatorio $it" }
                 ).joinToString(" · "),
                 style = AppTypography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = colors.onSurfaceVariant,
                 fontSize = 10.sp
             )
         }
@@ -156,11 +157,11 @@ fun TaskCard(
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
+                    .background(colors.surfaceVariant)
+                    .border(1.dp, colors.outlineVariant, RoundedCornerShape(10.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                Text("+30 XP", style = AppTypography.labelSmall, color = MaterialTheme.colorScheme.onSurface, fontSize = 10.sp)
+                Text("+30 XP", style = AppTypography.labelSmall, color = colors.onSurface, fontSize = 10.sp)
             }
         } else {
             Text("↩", color = TextDimmer, fontSize = 14.sp, modifier = Modifier.alpha(0.6f))
@@ -172,22 +173,22 @@ fun TaskCard(
                 modifier = Modifier
                     .size(34.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .background(colors.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,
                     contentDescription = "Opciones",
-                    tint = TextDim,
+                    tint = colors.onSurfaceVariant,
                     modifier = Modifier.size(20.dp)
                 )
             }
             DropdownMenu(
                 expanded = menuExpanded,
                 onDismissRequest = { menuExpanded = false },
-                modifier = Modifier.background(CardBackground)
+                modifier = Modifier.background(colors.surface)
             ) {
                 DropdownMenuItem(
-                    text = { Text("Editar", style = AppTypography.bodyMedium, color = TextSecondary) },
+                    text = { Text("Editar", style = AppTypography.bodyMedium, color = colors.onSurface) },
                     leadingIcon = { Icon(Icons.Rounded.Edit, contentDescription = null, tint = Purple) },
                     onClick = {
                         menuExpanded = false

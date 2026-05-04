@@ -1,5 +1,8 @@
 package com.habitquest.domain.model
 
+import com.habitquest.domain.gamification.AchievementPolicy
+import com.habitquest.domain.gamification.PetReactionSnapshot
+
 data class Achievement(
     val id: Int,
     val name: String,
@@ -9,40 +12,28 @@ data class Achievement(
 )
 
 object Achievements {
+    // Compatibility wrapper: derive a minimal snapshot from habits and delegate
     fun evaluate(habits: List<Habit>): List<Achievement> {
         val maxStreak = habits.maxOfOrNull { it.streakCount } ?: 0
         val totalDaysAll = habits.sumOf { it.totalDays }
         val activeHabits = habits.count { it.streakCount > 0 }
 
-        return listOf(
-            Achievement(
-                id = 1,
-                name = "Primera Racha",
-                description = "5 días seguidos",
-                icon = "🔥",
-                isUnlocked = maxStreak >= 5
-            ),
-            Achievement(
-                id = 2,
-                name = "Semana Épica",
-                description = "7 días en un hábito",
-                icon = "⚡",
-                isUnlocked = habits.any { it.streakCount >= 7 }
-            ),
-            Achievement(
-                id = 3,
-                name = "Maestro",
-                description = "30 días totales",
-                icon = "🏆",
-                isUnlocked = totalDaysAll >= 30
-            ),
-            Achievement(
-                id = 4,
-                name = "Constante",
-                description = "3 hábitos activos",
-                icon = "💎",
-                isUnlocked = activeHabits >= 3
-            ),
+        val snapshot = PetReactionSnapshot(
+            totalXP = totalDaysAll, // best-effort mapping for legacy usage
+            level = 1,
+            streak = maxStreak,
+            completedHabits = totalDaysAll,
+            completedTasks = 0
         )
+
+        return AchievementPolicy.evaluate(snapshot).map {
+            Achievement(
+                id = it.id,
+                name = it.title,
+                description = it.description,
+                icon = it.icon,
+                isUnlocked = it.unlocked
+            )
+        }
     }
 }
