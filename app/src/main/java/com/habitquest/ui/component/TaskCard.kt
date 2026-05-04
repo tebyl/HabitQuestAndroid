@@ -24,6 +24,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -57,9 +58,6 @@ import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-private val taskBg = Color(0xFFFFFFFF)
-private val taskBgDone = Color(0xFFF7FBF3)
-
 @Composable
 fun TaskCard(
     task: Task,
@@ -89,20 +87,21 @@ fun TaskCard(
     }
     var menuExpanded by remember { mutableStateOf(false) }
     val bgColor by animateColorAsState(
-        targetValue = if (task.isCompleted) taskBgDone else taskBg,
+        targetValue = if (task.isCompleted) CardBackground2 else CardBackground,
         animationSpec = tween(300),
         label = "task_bg"
     )
+    val outlineColor = MaterialTheme.colorScheme.outlineVariant
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
-            .background(bgColor.copy(alpha = 0.72f))
+            .background(bgColor)
             .border(
                 1.dp,
-                if (task.isCompleted) Emerald.copy(alpha = 0.22f) else DividerLight.copy(alpha = 0.32f),
+                if (task.isCompleted) MaterialTheme.colorScheme.secondary else outlineColor,
                 RoundedCornerShape(20.dp)
             )
             .clickable {
@@ -116,11 +115,11 @@ fun TaskCard(
             modifier = Modifier
                 .size(28.dp)
                 .clip(CircleShape)
-                .background(if (task.isCompleted) Emerald else Purple.copy(alpha = 0.10f))
-                .border(1.dp, if (task.isCompleted) Emerald else Purple.copy(alpha = 0.22f), CircleShape)
+                .background(if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant, CircleShape)
         ) {
             if (task.isCompleted) {
-                Text("✓", color = Color.White, fontSize = 14.sp)
+                Text("✓", color = MaterialTheme.colorScheme.onSecondary, fontSize = 14.sp)
             } else {
                 Icon(
                     imageVector = categoryIcon,
@@ -146,7 +145,7 @@ fun TaskCard(
                     reminderLabel?.let { "Recordatorio $it" }
                 ).joinToString(" · "),
                 style = AppTypography.labelSmall,
-                color = catColor.copy(alpha = if (task.isCompleted) 0.4f else 0.7f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp
             )
         }
@@ -157,11 +156,11 @@ fun TaskCard(
                 horizontalArrangement = Arrangement.spacedBy(3.dp),
                 modifier = Modifier
                     .clip(RoundedCornerShape(10.dp))
-                    .background(Emerald.copy(alpha = 0.10f))
-                    .border(1.dp, Emerald.copy(alpha = 0.16f), RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(10.dp))
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             ) {
-                Text("+30 XP", style = AppTypography.labelSmall, color = Emerald, fontSize = 10.sp)
+                Text("+30 XP", style = AppTypography.labelSmall, color = MaterialTheme.colorScheme.onSurface, fontSize = 10.sp)
             }
         } else {
             Text("↩", color = TextDimmer, fontSize = 14.sp, modifier = Modifier.alpha(0.6f))
@@ -173,7 +172,7 @@ fun TaskCard(
                 modifier = Modifier
                     .size(34.dp)
                     .clip(CircleShape)
-                    .background(Purple.copy(alpha = 0.08f))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Icon(
                     imageVector = Icons.Rounded.MoreVert,

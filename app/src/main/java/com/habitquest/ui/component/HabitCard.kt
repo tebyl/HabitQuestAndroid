@@ -28,6 +28,7 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +42,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,6 +76,7 @@ fun HabitCard(
 ) {
     val categoryColor = categoryColor(habit.category)
     val categoryIcon = categoryIconFor(habit.category)
+    val outlineColor = MaterialTheme.colorScheme.outlineVariant
     val scope = rememberCoroutineScope()
     var showXP by remember { mutableStateOf(false) }
     var pulseTarget by remember { mutableStateOf(false) }
@@ -116,17 +117,10 @@ fun HabitCard(
             .alpha(completionAlpha)
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(
-                Brush.linearGradient(
-                    if (habit.completedToday)
-                        listOf(Emerald.copy(alpha = 0.22f), CardBackground.copy(alpha = 0.96f))
-                    else
-                        listOf(CardBackground.copy(alpha = 0.96f), CardBackground2.copy(alpha = 0.72f))
-                )
-            )
+            .background(if (habit.completedToday) MaterialTheme.colorScheme.surfaceVariant else MaterialTheme.colorScheme.surface)
             .border(
                 1.dp,
-                if (habit.completedToday) Emerald.copy(alpha = 0.32f) else DividerLight.copy(alpha = 0.55f),
+                if (habit.completedToday) MaterialTheme.colorScheme.secondary else outlineColor,
                 RoundedCornerShape(22.dp)
             )
             .clickable(
@@ -156,13 +150,11 @@ fun HabitCard(
                     .size(44.dp)
                     .clip(RoundedCornerShape(16.dp))
                     .background(
-                        if (habit.completedToday) Emerald.copy(alpha = 0.16f)
-                        else categoryColor.copy(alpha = 0.12f)
+                        MaterialTheme.colorScheme.surfaceVariant
                     )
                     .border(
                         1.dp,
-                        if (habit.completedToday) Emerald.copy(alpha = 0.28f)
-                        else categoryColor.copy(alpha = 0.22f),
+                        MaterialTheme.colorScheme.outlineVariant,
                         RoundedCornerShape(16.dp)
                     )
             ) {
@@ -191,7 +183,7 @@ fun HabitCard(
                         fontSize = 9.sp,
                         modifier = Modifier
                             .clip(RoundedCornerShape(4.dp))
-                            .background(categoryColor.copy(alpha = 0.13f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(horizontal = 6.dp, vertical = 1.dp)
                     )
                 }
@@ -219,11 +211,11 @@ fun HabitCard(
                     modifier = Modifier
                         .size(32.dp)
                         .clip(CircleShape)
-                        .background(if (habit.completedToday) Emerald else Color.Transparent)
-                        .border(2.dp, if (habit.completedToday) Emerald else DividerLight, CircleShape)
+                        .background(if (habit.completedToday) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.surface)
+                        .border(2.dp, if (habit.completedToday) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outlineVariant, CircleShape)
                 ) {
                     if (habit.completedToday) {
-                        Text("✓", color = Color.White, fontSize = 14.sp)
+                        Text("✓", color = MaterialTheme.colorScheme.onSecondary, fontSize = 14.sp)
                     }
                 }
 
@@ -233,7 +225,7 @@ fun HabitCard(
                         modifier = Modifier
                             .size(34.dp)
                             .clip(CircleShape)
-                            .background(Purple.copy(alpha = 0.08f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.MoreVert,
@@ -272,7 +264,7 @@ fun HabitCard(
             Text(
                 text = "+$xpGain XP",
                 style = AppTypography.labelLarge,
-                color = Amber.copy(alpha = xpAlpha),
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .offset(y = xpOffsetY.dp)

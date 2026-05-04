@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
@@ -38,13 +39,13 @@ val LocalThemeController = staticCompositionLocalOf {
 }
 
 private val DarkColorScheme = darkColorScheme(
-    primary = Purple,
-    onPrimary = DarkPalette.textPrimary,
+    primary = PurpleDark,
+    onPrimary = Color(0xFF17121F),
     primaryContainer = DarkPalette.cardBackground2,
     onPrimaryContainer = DarkPalette.textPrimary,
-    secondary = Orange,
-    onSecondary = DarkPalette.textPrimary,
-    tertiary = Rose,
+    secondary = EmeraldDarkTheme,
+    onSecondary = Color(0xFF10210C),
+    tertiary = BlueDark,
     background = DarkPalette.background,
     onBackground = DarkPalette.textPrimary,
     surface = DarkPalette.cardBackground,
@@ -58,11 +59,11 @@ private val DarkColorScheme = darkColorScheme(
 
 private val LightColorScheme = lightColorScheme(
     primary = Purple,
-    onPrimary = LightPalette.textPrimary,
+    onPrimary = Color.White,
     primaryContainer = LightPalette.cardBackground2,
     onPrimaryContainer = LightPalette.textPrimary,
     secondary = Orange,
-    onSecondary = LightPalette.textPrimary,
+    onSecondary = Color.White,
     tertiary = Rose,
     background = LightPalette.background,
     onBackground = LightPalette.textPrimary,

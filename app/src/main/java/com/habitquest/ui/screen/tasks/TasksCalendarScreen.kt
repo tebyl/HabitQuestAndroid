@@ -40,6 +40,7 @@ import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -128,7 +129,7 @@ fun TasksCalendarScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFFF5EDE6)
+                    containerColor = Background
                 )
             )
         }
@@ -136,11 +137,7 @@ fun TasksCalendarScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        listOf(Color(0xFFF5EDE6), Color(0xFFEFE3F5), Background)
-                    )
-                )
+                .background(MaterialTheme.colorScheme.background)
                 .padding(innerPadding)
                 .padding(horizontal = 18.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
@@ -227,8 +224,8 @@ private fun MonthHeader(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(22.dp))
-            .background(Color.White.copy(alpha = 0.62f))
-            .border(1.dp, Color.White.copy(alpha = 0.72f), RoundedCornerShape(22.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(22.dp))
             .padding(horizontal = 8.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -239,7 +236,7 @@ private fun MonthHeader(
             text = month.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale("es")))
                 .replaceFirstChar { it.uppercase() },
             style = AppTypography.titleLarge,
-            color = TextPrimary,
+            color = MaterialTheme.colorScheme.onSurface,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.weight(1f),
             maxLines = 1
@@ -317,9 +314,9 @@ private fun DayCell(
         label = "selectedDayScale"
     )
     val background = when {
-        selected -> Purple.copy(alpha = 0.18f)
-        isToday -> Purple.copy(alpha = 0.10f)
-        else -> Color.White.copy(alpha = 0.58f)
+        selected -> MaterialTheme.colorScheme.primaryContainer
+        isToday -> MaterialTheme.colorScheme.surfaceVariant
+        else -> MaterialTheme.colorScheme.surface
     }
 
     Column(
@@ -335,9 +332,9 @@ private fun DayCell(
             .border(
                 width = if (selected) 2.dp else 1.dp,
                 color = when {
-                    selected -> Purple.copy(alpha = 0.64f)
-                    isToday -> Purple.copy(alpha = 0.20f)
-                    else -> Color.White.copy(alpha = 0.62f)
+                    selected -> MaterialTheme.colorScheme.primary
+                    isToday -> MaterialTheme.colorScheme.outlineVariant
+                    else -> MaterialTheme.colorScheme.outlineVariant
                 },
                 shape = RoundedCornerShape(14.dp)
             )
@@ -365,17 +362,14 @@ private fun TaskIndicator(tasks: List<Task>) {
             Text(
                 text = task.name,
                 style = AppTypography.labelSmall,
-                color = if (task.isCompleted) Emerald else Purple,
+                color = MaterialTheme.colorScheme.onSurface,
                 fontSize = 8.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        if (task.isCompleted) Emerald.copy(alpha = 0.12f)
-                        else Purple.copy(alpha = 0.12f)
-                    )
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
                     .padding(horizontal = 5.dp, vertical = 3.dp)
             )
         }
@@ -389,7 +383,7 @@ private fun TaskIndicator(tasks: List<Task>) {
                         modifier = Modifier
                             .size(5.dp)
                             .clip(CircleShape)
-                            .background(if (task.isCompleted) Emerald.copy(alpha = 0.62f) else Purple.copy(alpha = 0.66f))
+                            .background(if (task.isCompleted) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.primary)
                     )
                 }
             }
@@ -407,8 +401,8 @@ private fun SelectedDayTasks(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
-            .background(Color.White.copy(alpha = 0.68f))
-            .border(1.dp, Color.White.copy(alpha = 0.76f), RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp))
             .padding(horizontal = 16.dp, vertical = 14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
@@ -416,7 +410,7 @@ private fun SelectedDayTasks(
             text = date.format(DateTimeFormatter.ofPattern("EEEE d", Locale("es")))
                 .replaceFirstChar { it.uppercase() },
             style = AppTypography.titleMedium,
-            color = TextPrimary
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         AnimatedVisibility(
@@ -438,7 +432,7 @@ private fun SelectedDayTasks(
             Text(
                 text = "Sin tareas para este dia",
                 style = AppTypography.bodyMedium,
-                color = TextMuted,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(vertical = 14.dp)
             )
         }
@@ -447,15 +441,14 @@ private fun SelectedDayTasks(
 
 @Composable
 private fun CalendarTaskRow(task: Task) {
-    val taskColor = if (task.isCompleted) Emerald else Purple
     val category = categoryColor(task.category)
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(CardBackground2.copy(alpha = 0.62f))
-            .border(1.dp, DividerLight.copy(alpha = 0.34f), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -480,18 +473,18 @@ private fun CalendarTaskRow(task: Task) {
             Text(
                 text = categoryLabel(task.category),
                 style = AppTypography.labelSmall,
-                color = category.copy(alpha = 0.82f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 fontSize = 10.sp
             )
         }
         Text(
             text = if (task.isCompleted) "Completada" else "Pendiente",
             style = AppTypography.labelSmall,
-            color = taskColor,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 10.sp,
             modifier = Modifier
                 .clip(RoundedCornerShape(10.dp))
-                .background(taskColor.copy(alpha = 0.10f))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
                 .padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }

@@ -20,6 +20,7 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -94,11 +95,7 @@ fun HomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFFF5EDE6), Color(0xFFEFE3F5), Background)
-                )
-            )
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -118,13 +115,13 @@ fun HomeScreen(
                         Text(
                             text = dateStr.uppercase(),
                             style = AppTypography.labelSmall,
-                            color = TextDim,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                             letterSpacing = 1.5.sp
                         )
                         Text(
                             text = "Hoy",
                             style = AppTypography.headlineLarge,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                     }
                     Row(
@@ -136,10 +133,10 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(4.dp),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(20.dp))
-                                .background(Purple.copy(alpha = 0.13f))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .border(
                                     1.dp,
-                                    Purple.copy(alpha = 0.24f),
+                                    MaterialTheme.colorScheme.outlineVariant,
                                     RoundedCornerShape(20.dp)
                                 )
                                 .padding(horizontal = 10.dp, vertical = 5.dp)
@@ -147,7 +144,7 @@ fun HomeScreen(
                             Text(
                                 text = "LVL ${state.currentLevel.level}",
                                 style = AppTypography.labelSmall,
-                                color = Purple,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 fontSize = 10.sp
                             )
                         }
@@ -155,9 +152,9 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
                                 .size(38.dp)
-                                .background(Color(0xFFF3F0FF), CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                                 .clip(CircleShape)
-                                .border(2.dp, Color.White.copy(alpha = 0.74f), CircleShape)
+                                .border(2.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         ) {
                             Image(
                                 painter = painterResource(userAvatarResOrDefault(state.userAvatar)),
@@ -180,16 +177,8 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .clip(RoundedCornerShape(24.dp))
-                        .background(
-                            Brush.linearGradient(
-                                listOf(
-                                    Color(0xFFFFF7F1).copy(alpha = 0.92f),
-                                    Purple.copy(alpha = 0.16f),
-                                    Orange.copy(alpha = 0.12f)
-                                )
-                            )
-                        )
-                        .border(1.dp, Color.White.copy(alpha = 0.68f), RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.surface)
+                        .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
                         .padding(horizontal = 22.dp, vertical = 24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
@@ -202,13 +191,13 @@ fun HomeScreen(
                                 else           -> "Tu dia va tomando forma"
                             },
                             style = AppTypography.titleLarge,
-                            color = TextPrimary
+                            color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
                             text = "Pequenos pasos, grandes cambios",
                             style = AppTypography.bodyMedium,
-                            color = TextMuted
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
@@ -220,7 +209,6 @@ fun HomeScreen(
                         HomeHeroMetric(
                             label = state.currentLevel.name,
                             value = "${state.currentLevel.level}",
-                            color = Purple,
                             modifier = Modifier.weight(1f)
                         )
                         Box(
@@ -228,24 +216,19 @@ fun HomeScreen(
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .size(144.dp)
-                                .background(
-                                    Brush.radialGradient(
-                                        listOf(Color.White.copy(alpha = 0.98f), Purple.copy(alpha = 0.18f))
-                                    ),
-                                    CircleShape
-                                )
-                                .border(1.dp, Color.White.copy(alpha = 0.72f), CircleShape)
+                                .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                         ) {
                             PetAnimation(
                                 stage = petState.stage,
                                 streak = petState.streak,
+                                reactionState = state.petReactionState,
                                 modifier = Modifier.size(140.dp)
                             )
                         }
                         HomeHeroMetric(
                             label = "dias",
                             value = "$currentStreak",
-                            color = Orange,
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -254,7 +237,7 @@ fun HomeScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White.copy(alpha = 0.58f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
                             .padding(16.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -270,7 +253,7 @@ fun HomeScreen(
                             text = nextLevel?.let { "${(state.xpToNext - state.xpInCurrentLevel).coerceAtLeast(0)} XP para nivel ${it.level}" }
                                 ?: "Nivel maximo alcanzado",
                             style = AppTypography.labelSmall,
-                            color = TextMuted
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -316,8 +299,8 @@ fun HomeScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 20.dp)
                             .clip(RoundedCornerShape(20.dp))
-                            .background(Color.White.copy(alpha = 0.74f))
-                            .border(1.dp, Orange.copy(alpha = 0.20f), RoundedCornerShape(20.dp))
+                            .background(MaterialTheme.colorScheme.surface)
+                            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
                             .padding(horizontal = 14.dp, vertical = 10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -427,8 +410,8 @@ fun HomeScreen(
                             horizontalArrangement = Arrangement.spacedBy(6.dp),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(18.dp))
-                                .background(Purple.copy(alpha = 0.12f))
-                                .border(1.dp, Purple.copy(alpha = 0.24f), RoundedCornerShape(18.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(18.dp))
                                 .clickable(onClick = onOpenTasksCalendar)
                                 .padding(horizontal = 10.dp, vertical = 8.dp)
                         ) {
@@ -492,7 +475,7 @@ fun HomeScreen(
                 .padding(end = 20.dp, bottom = 88.dp),
             shape = CircleShape,
             containerColor = Purple,
-            contentColor = Color.White
+            contentColor = MaterialTheme.colorScheme.onPrimary
         ) {
             Text("+", fontSize = 26.sp, fontWeight = FontWeight.Bold, lineHeight = 26.sp)
         }
@@ -511,19 +494,10 @@ fun HomeScreen(
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
-                        .background(
-                            if (toast.isLevelUp)
-                                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), Amber.copy(alpha = 0.18f)))
-                            else if (toast.message.startsWith("-"))
-                                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), Orange.copy(alpha = 0.18f)))
-                            else
-                                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.96f), Emerald.copy(alpha = 0.18f)))
-                        )
+                        .background(MaterialTheme.colorScheme.surface)
                         .border(
                             1.dp,
-                            if (toast.isLevelUp) Amber.copy(alpha = 0.34f)
-                            else if (toast.message.startsWith("-")) Orange.copy(alpha = 0.34f)
-                            else Emerald.copy(alpha = 0.34f),
+                            MaterialTheme.colorScheme.outlineVariant,
                             RoundedCornerShape(20.dp)
                         )
                         .padding(horizontal = 20.dp, vertical = 10.dp)
@@ -531,7 +505,7 @@ fun HomeScreen(
                     Text(
                         text = toast.message,
                         style = AppTypography.labelLarge,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
@@ -620,27 +594,26 @@ private fun DeleteConfirmDialog(
 private fun HomeHeroMetric(
     label: String,
     value: String,
-    color: Color,
     modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.58f))
-            .border(1.dp, color.copy(alpha = 0.14f), RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
             .padding(horizontal = 10.dp, vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             text = value,
             style = AppTypography.labelLarge,
-            color = color,
+            color = MaterialTheme.colorScheme.onSurface,
             fontSize = 11.sp
         )
         Text(
             text = label,
             style = AppTypography.labelSmall,
-            color = TextDim,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             fontSize = 8.sp
         )
     }

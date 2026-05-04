@@ -44,6 +44,7 @@ import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -334,7 +335,7 @@ fun HabitCreateSheet(
                     shape = RoundedCornerShape(18.dp),
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Purple.copy(alpha = 0.48f),
-                        unfocusedBorderColor = DividerLight.copy(alpha = 0.70f),
+                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
                         errorBorderColor = Red.copy(alpha = 0.62f),
                         focusedTextColor = TextPrimary,
                         unfocusedTextColor = TextSecondary,
@@ -664,7 +665,7 @@ private fun SectionCard(
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
             .background(CardBackground2.copy(alpha = 0.58f))
-            .border(1.dp, DividerLight.copy(alpha = 0.52f), RoundedCornerShape(24.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
             .padding(14.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {

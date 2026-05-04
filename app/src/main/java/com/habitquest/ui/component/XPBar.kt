@@ -5,13 +5,13 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
-import com.habitquest.ui.theme.*
+import com.habitquest.ui.theme.AppTypography
 
 @Composable
 fun XPBar(
@@ -36,12 +36,12 @@ fun XPBar(
             Text(
                 text = "LVL $level",
                 style = AppTypography.labelSmall,
-                color = TextMuted
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "$currentXP / $maxXP XP",
                 style = AppTypography.labelSmall,
-                color = TextMuted
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
         Spacer(Modifier.height(4.dp))
@@ -50,16 +50,14 @@ fun XPBar(
                 .fillMaxWidth()
                 .height(8.dp)
                 .clip(RoundedCornerShape(4.dp))
-                .background(Purple.copy(alpha = 0.16f))
+                .background(MaterialTheme.colorScheme.surfaceVariant)
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(animatedPct)
                     .clip(RoundedCornerShape(4.dp))
-                    .background(
-                        Brush.horizontalGradient(listOf(Purple, Orange.copy(alpha = 0.86f)))
-                    )
+                    .background(MaterialTheme.colorScheme.primary)
             )
         }
     }

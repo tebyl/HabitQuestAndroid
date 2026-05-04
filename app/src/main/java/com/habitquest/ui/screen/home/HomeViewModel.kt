@@ -9,9 +9,13 @@ import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Level
 import com.habitquest.domain.model.Levels
 import com.habitquest.domain.model.Task
+import com.habitquest.domain.gamification.PetReactionPolicy
+import com.habitquest.domain.gamification.PetReactionSnapshot
+import com.habitquest.domain.gamification.PetReactionState
 import com.habitquest.ui.screen.profile.DEFAULT_AVATAR
 import com.habitquest.ui.screen.profile.resolveSupportedAvatar
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -40,12 +44,14 @@ class HomeViewModel @Inject constructor(
         val userAvatar: String = DEFAULT_AVATAR,
         val userName: String = "Tu espacio",
         val toast: ToastState? = null,
+        val petReactionState: PetReactionState = PetReactionState.IDLE,
         val showQuickAdd: Boolean = false,
         val isLoading: Boolean = true
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    private var petReactionJob: Job? = null
 
     init {
         viewModelScope.launch { repository.resetDailyHabitsIfNeeded() }
@@ -82,9 +88,17 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val prevLevel = _uiState.value.currentLevel
             val prevXP    = _uiState.value.totalXP
+            val previousSnapshot = _uiState.value.toPetReactionSnapshot()
             val xpGained  = repository.completeHabit(habitId)
             val newXP     = prevXP + xpGained
             val newLevel  = Levels.getCurrentLevel(newXP)
+            val currentSnapshot = PetReactionSnapshot(
+                totalXP = newXP,
+                level = newLevel.level,
+                streak = maxOf(previousSnapshot.streak, habit.streakCount + 1),
+                completedHabits = previousSnapshot.completedHabits + 1,
+                completedTasks = previousSnapshot.completedTasks
+            )
 
             val toast = if (newLevel.level > prevLevel.level) {
                 ToastState("¡Subiste a ${newLevel.name}! 🎉", isLevelUp = true)
@@ -93,6 +107,7 @@ class HomeViewModel @Inject constructor(
             }
 
             _uiState.update { it.copy(toast = toast) }
+            emitPetReaction(PetReactionPolicy.detect(previousSnapshot, currentSnapshot))
             delay(2000)
             _uiState.update { it.copy(toast = null) }
         }
@@ -121,9 +136,17 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             val prevLevel = _uiState.value.currentLevel
             val prevXP    = _uiState.value.totalXP
+            val previousSnapshot = _uiState.value.toPetReactionSnapshot()
             repository.completeTask(taskId)
             val newXP    = prevXP + HabitRepositoryImpl.XP_PER_TASK
             val newLevel = Levels.getCurrentLevel(newXP)
+            val currentSnapshot = PetReactionSnapshot(
+                totalXP = newXP,
+                level = newLevel.level,
+                streak = previousSnapshot.streak,
+                completedHabits = previousSnapshot.completedHabits,
+                completedTasks = previousSnapshot.completedTasks + 1
+            )
 
             val toast = if (newLevel.level > prevLevel.level) {
                 ToastState("¡Subiste a ${newLevel.name}! 🎉", isLevelUp = true)
@@ -132,6 +155,7 @@ class HomeViewModel @Inject constructor(
             }
 
             _uiState.update { it.copy(toast = toast) }
+            emitPetReaction(PetReactionPolicy.detect(previousSnapshot, currentSnapshot))
             delay(2000)
             _uiState.update { it.copy(toast = null) }
         }
@@ -234,5 +258,25 @@ class HomeViewModel @Inject constructor(
 
     private companion object {
         const val TAG = "HomeViewModel"
+        const val PET_REACTION_TIMEOUT_MILLIS = 2_500L
     }
+
+    private fun emitPetReaction(reaction: PetReactionState) {
+        if (reaction == PetReactionState.IDLE) return
+        petReactionJob?.cancel()
+        _uiState.update { it.copy(petReactionState = reaction) }
+        petReactionJob = viewModelScope.launch {
+            delay(PET_REACTION_TIMEOUT_MILLIS)
+            _uiState.update { it.copy(petReactionState = PetReactionState.IDLE) }
+        }
+    }
+
+    private fun UiState.toPetReactionSnapshot(): PetReactionSnapshot =
+        PetReactionSnapshot(
+            totalXP = totalXP,
+            level = currentLevel.level,
+            streak = habits.maxOfOrNull { it.streakCount } ?: 0,
+            completedHabits = habits.sumOf { it.totalDays },
+            completedTasks = tasks.count { it.isCompleted }
+        )
 }

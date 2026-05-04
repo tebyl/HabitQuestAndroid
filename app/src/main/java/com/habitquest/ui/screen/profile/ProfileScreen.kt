@@ -2,6 +2,7 @@ package com.habitquest.ui.screen.profile
 
 import android.Manifest
 import android.os.Build
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -23,7 +24,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -86,11 +89,7 @@ fun ProfileScreen(
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    listOf(Color(0xFFF5EDE6), Color(0xFFEFE3F5), Background)
-                )
-            ),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(bottom = 24.dp)
     ) {
         // ── Page header ───────────────────────────────────────────
@@ -143,6 +142,7 @@ fun ProfileScreen(
             )
             EvolutionPetCard(
                 petState = petState,
+                reactionState = state.petReactionState,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
             Spacer(Modifier.height(14.dp))
@@ -330,12 +330,8 @@ private fun AvatarPickerDialog(
         shape = RoundedCornerShape(28.dp),
         modifier = Modifier
             .clip(RoundedCornerShape(28.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(Color.White.copy(alpha = 0.96f), Purple.copy(alpha = 0.12f))
-                )
-            )
-            .border(1.dp, Color.White.copy(alpha = 0.74f), RoundedCornerShape(28.dp)),
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(28.dp)),
         title = {
             Text(
                 text = "Elige tu avatar",
@@ -357,12 +353,12 @@ private fun AvatarPickerDialog(
                         modifier = Modifier
                             .clip(RoundedCornerShape(22.dp))
                             .background(
-                                if (isSelected) Purple.copy(alpha = 0.14f)
-                                else Color.White.copy(alpha = 0.56f)
+                                if (isSelected) MaterialTheme.colorScheme.surfaceVariant
+                                else MaterialTheme.colorScheme.surface
                             )
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
-                                color = if (isSelected) Purple else Color.White.copy(alpha = 0.70f),
+                                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                 shape = RoundedCornerShape(22.dp)
                             )
                             .clickable { onSelect(option.emoji) }
@@ -373,28 +369,29 @@ private fun AvatarPickerDialog(
                                 .size(54.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    Brush.linearGradient(
-                                        if (isSelected) {
-                                            listOf(Purple.copy(alpha = 0.26f), Orange.copy(alpha = 0.18f))
-                                        } else {
-                                            listOf(Color.White.copy(alpha = 0.94f), Purple.copy(alpha = 0.10f))
-                                        }
-                                    )
+                                    MaterialTheme.colorScheme.surfaceVariant
                                 )
                                 .border(
                                     1.dp,
-                                    if (isSelected) Orange.copy(alpha = 0.54f) else Purple.copy(alpha = 0.12f),
+                                    if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
                                     CircleShape
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(option.emoji, fontSize = 30.sp)
+                            Image(
+                                painter = painterResource(option.imageRes),
+                                contentDescription = option.label,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                            )
                         }
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = option.label,
                             style = AppTypography.labelSmall,
-                            color = if (isSelected) Purple else TextMuted,
+                            color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
                             fontSize = 10.sp,
                             textAlign = TextAlign.Center
                         )
@@ -407,8 +404,8 @@ private fun AvatarPickerDialog(
                 onClick = onDismiss,
                 shape = RoundedCornerShape(18.dp),
                 colors = ButtonDefaults.textButtonColors(
-                    containerColor = Purple.copy(alpha = 0.12f),
-                    contentColor = Purple
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    contentColor = MaterialTheme.colorScheme.onSurface
                 )
             ) {
                 Text("Cerrar", style = AppTypography.labelLarge)

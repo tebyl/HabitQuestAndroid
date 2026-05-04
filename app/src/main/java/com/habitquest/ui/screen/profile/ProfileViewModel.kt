@@ -1,14 +1,21 @@
 package com.habitquest.ui.screen.profile
 
+import androidx.annotation.DrawableRes
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.habitquest.R
 import com.habitquest.data.preferences.AmbientSoundPreferences
 import com.habitquest.data.repository.HabitRepository
 import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Level
 import com.habitquest.domain.model.Levels
+import com.habitquest.domain.gamification.PetReactionPolicy
+import com.habitquest.domain.gamification.PetReactionSnapshot
+import com.habitquest.domain.gamification.PetReactionState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,15 +24,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class AvatarOption(val emoji: String, val label: String)
+data class AvatarOption(
+    val emoji: String,
+    val label: String,
+    @DrawableRes val imageRes: Int
+)
 
 val AVATAR_OPTIONS = listOf(
-    AvatarOption("\uD83D\uDC69\uD83C\uDFFB\u200D\uD83E\uDDB0", "Chica 1 \uD83C\uDF38"),
-    AvatarOption("\uD83D\uDC69\uD83C\uDFFD", "Chica 2 \u2728"),
-    AvatarOption("\uD83D\uDC69\uD83C\uDFFB", "Chica 3 \uD83D\uDC9C"),
-    AvatarOption("\uD83D\uDC69\uD83C\uDFFB\u200D\uD83D\uDCBB", "Chica 4 \u2615"),
-    AvatarOption("\uD83D\uDC69\u200D\uD83E\uDDB1", "Chica 5 \uD83C\uDF3F"),
-    AvatarOption("\uD83D\uDC71\u200D\u2640\uFE0F", "Chica 6 \uD83C\uDF80"),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFB\u200D\uD83E\uDDB0", "Chica 1", R.drawable.avatar_default),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFD", "Chica 2", R.drawable.avatar_2),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFB", "Chica 3", R.drawable.avatar_3),
+    AvatarOption("\uD83D\uDC69\uD83C\uDFFB\u200D\uD83D\uDCBB", "Chica 4", R.drawable.avatar_4),
+    AvatarOption("\uD83D\uDC69\u200D\uD83E\uDDB1", "Chica 5", R.drawable.avatar_5),
+    AvatarOption("\uD83D\uDC71\u200D\u2640\uFE0F", "Chica 6", R.drawable.avatar_6),
 )
 
 val DEFAULT_AVATAR = AVATAR_OPTIONS.first().emoji
@@ -81,11 +92,14 @@ class ProfileViewModel @Inject constructor(
         val showAvatarPicker: Boolean = false,
         val notificationsEnabled: Boolean = false,
         val ambientSoundEnabled: Boolean = false,
+        val petReactionState: PetReactionState = PetReactionState.IDLE,
         val isLoading: Boolean = true
     )
 
     private val _uiState = MutableStateFlow(UiState())
     val uiState: StateFlow<UiState> = _uiState.asStateFlow()
+    private var previousPetSnapshot: PetReactionSnapshot? = null
+    private var petReactionJob: Job? = null
 
     init {
         viewModelScope.launch {
@@ -104,6 +118,17 @@ class ProfileViewModel @Inject constructor(
                     val level = Levels.getCurrentLevel(stats.totalXP)
                     val maxStreak = habits.maxOfOrNull { it.streakCount } ?: 0
                     val tasksCompleted = tasks.count { it.isCompleted }
+                    val currentSnapshot = PetReactionSnapshot(
+                        totalXP = stats.totalXP,
+                        level = level.level,
+                        streak = maxStreak,
+                        completedHabits = habits.sumOf { it.totalDays },
+                        completedTasks = tasksCompleted
+                    )
+                    val reaction = previousPetSnapshot
+                        ?.let { PetReactionPolicy.detect(it, currentSnapshot) }
+                        ?: PetReactionState.IDLE
+                    previousPetSnapshot = currentSnapshot
                     _uiState.update {
                         it.copy(
                             habits           = habits,
@@ -122,6 +147,7 @@ class ProfileViewModel @Inject constructor(
                             isLoading        = false
                         )
                     }
+                    emitPetReaction(reaction)
                 }
         }
     }
@@ -178,6 +204,20 @@ class ProfileViewModel @Inject constructor(
     fun setAmbientSoundEnabled(enabled: Boolean) {
         _uiState.update { it.copy(ambientSoundEnabled = enabled) }
         viewModelScope.launch { ambientSoundPreferences.setAmbientSoundEnabled(enabled) }
+    }
+
+    private fun emitPetReaction(reaction: PetReactionState) {
+        if (reaction == PetReactionState.IDLE) return
+        petReactionJob?.cancel()
+        _uiState.update { it.copy(petReactionState = reaction) }
+        petReactionJob = viewModelScope.launch {
+            delay(PET_REACTION_TIMEOUT_MILLIS)
+            _uiState.update { it.copy(petReactionState = PetReactionState.IDLE) }
+        }
+    }
+
+    private companion object {
+        const val PET_REACTION_TIMEOUT_MILLIS = 2_500L
     }
 }
 

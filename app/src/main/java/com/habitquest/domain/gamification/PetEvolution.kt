@@ -49,8 +49,12 @@ data class PetState(
     val nextStage: PetStage?,
     val progressToNext: Float,
     val xpToNext: Int,
+    val nextStageRequirementText: String,
+    val emotion: PetEmotion,
+    val message: String,
     val streakBonusActive: Boolean,
     val totalXP: Int,
+    val level: Int,
     val streak: Int,
     val habitsCompleted: Int,
     val tasksCompleted: Int,
@@ -70,27 +74,39 @@ fun resolvePetState(
     val safeHabitsCompleted = habitsCompleted.coerceAtLeast(0)
     val safeTasksCompleted = tasksCompleted.coerceAtLeast(0)
 
-    val stage = PetStage.entries.last { 
-        safeLevel >= it.minLevel || safeXP >= it.minXP 
-    }
-    
-    val nextStage = PetStage.entries.firstOrNull { 
-        it.ordinal > stage.ordinal 
-    }
-
-    val progressToNext = nextStage?.let { next ->
-        val previousXP = stage.minXP
-        val xpRange = (next.minXP - previousXP).coerceAtLeast(1)
-        ((safeXP - previousXP).toFloat() / xpRange).coerceIn(0f, 1f)
-    } ?: 1f
+    val progress = PetEvolutionPolicy.getNextStageProgress(
+        xp = safeXP,
+        level = safeLevel,
+        streak = safeStreak,
+        completedHabits = safeHabitsCompleted,
+        completedTasks = safeTasksCompleted
+    )
+    val emotion = PetEvolutionPolicy.getEmotion(
+        stage = progress.currentStage,
+        level = safeLevel,
+        streak = safeStreak,
+        completedHabits = safeHabitsCompleted,
+        completedTasks = safeTasksCompleted,
+        progressToNext = progress.progress
+    )
 
     return PetState(
-        stage = stage,
-        nextStage = nextStage,
-        progressToNext = progressToNext,
-        xpToNext = nextStage?.let { (it.minXP - safeXP).coerceAtLeast(0) } ?: 0,
+        stage = progress.currentStage,
+        nextStage = progress.nextStage,
+        progressToNext = progress.progress,
+        xpToNext = progress.xpToNext,
+        nextStageRequirementText = PetEvolutionPolicy.getNextStageRequirementText(
+            xp = safeXP,
+            level = safeLevel,
+            streak = safeStreak,
+            completedHabits = safeHabitsCompleted,
+            completedTasks = safeTasksCompleted
+        ),
+        emotion = emotion,
+        message = PetEvolutionPolicy.getStageMessage(progress.currentStage, emotion),
         streakBonusActive = safeStreak >= 3,
         totalXP = safeXP,
+        level = safeLevel,
         streak = safeStreak,
         habitsCompleted = safeHabitsCompleted,
         tasksCompleted = safeTasksCompleted,

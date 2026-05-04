@@ -7,13 +7,12 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -37,10 +36,8 @@ fun ProfileHeaderCard(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(24.dp))
-            .background(
-                Brush.linearGradient(listOf(Color.White.copy(alpha = 0.78f), Purple.copy(alpha = 0.10f)))
-            )
-            .border(1.dp, Color.White.copy(alpha = 0.68f), RoundedCornerShape(24.dp))
+            .background(MaterialTheme.colorScheme.surface)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(24.dp))
             .padding(vertical = 24.dp, horizontal = 20.dp)
     ) {
         // Avatar with edit overlay
@@ -51,9 +48,9 @@ fun ProfileHeaderCard(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(100.dp)
-                    .background(Color(0xFFF3F0FF), CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, CircleShape)
                     .clip(CircleShape)
-                    .border(3.dp, Color.White.copy(alpha = 0.82f), CircleShape)
+                    .border(3.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                     .clickable { onEditAvatar() }
             )
             Box(
@@ -61,8 +58,8 @@ fun ProfileHeaderCard(
                 modifier = Modifier
                     .size(28.dp)
                     .clip(CircleShape)
-                    .background(CardBackground)
-                    .border(1.dp, DividerLight, CircleShape)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, CircleShape)
                     .clickable { onEditAvatar() }
             ) {
                 Text("✏️", fontSize = 13.sp)
@@ -78,7 +75,7 @@ fun ProfileHeaderCard(
             Text(
                 text = "Hola, $name 💜",
                 style = AppTypography.headlineMedium,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = "✏️",
@@ -92,7 +89,7 @@ fun ProfileHeaderCard(
         Text(
             text = "Sigue creciendo, un hábito a la vez.",
             style = AppTypography.bodyMedium,
-            color = TextMuted
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
         Spacer(Modifier.height(10.dp))
@@ -108,14 +105,14 @@ fun ProfileHeaderCard(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(currentLevel.color.copy(alpha = 0.13f))
-                    .border(1.dp, currentLevel.color.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
                 Text(
                     text = "LVL ${currentLevel.level} · ${currentLevel.name}",
                     style = AppTypography.labelSmall,
-                    color = currentLevel.color,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 11.sp
                 )
             }
@@ -126,15 +123,15 @@ fun ProfileHeaderCard(
                 horizontalArrangement = Arrangement.spacedBy(4.dp),
                 modifier = Modifier
                     .clip(RoundedCornerShape(20.dp))
-                    .background(rank.color.copy(alpha = 0.13f))
-                    .border(1.dp, rank.color.copy(alpha = 0.3f), RoundedCornerShape(20.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                    .border(1.dp, MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(20.dp))
                     .padding(horizontal = 10.dp, vertical = 5.dp)
             ) {
                 Text(rank.icon, fontSize = 11.sp)
                 Text(
                     text = rank.title,
                     style = AppTypography.labelSmall,
-                    color = rank.color,
+                    color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 11.sp
                 )
             }
