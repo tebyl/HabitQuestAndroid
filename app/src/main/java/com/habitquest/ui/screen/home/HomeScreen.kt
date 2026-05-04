@@ -550,8 +550,8 @@ fun HomeScreen(
                 viewModel.updateHabit(id, name, category, frequency)
                 editingHabit = null
             },
-            onUpdateTask = { id, name, category, scheduledDate ->
-                viewModel.updateTask(id, name, category, scheduledDate)
+            onUpdateTask = { id, name, category, scheduledDate, reminderAtMillis ->
+                viewModel.updateTask(id, name, category, scheduledDate, reminderAtMillis)
                 editingTask = null
             }
         )

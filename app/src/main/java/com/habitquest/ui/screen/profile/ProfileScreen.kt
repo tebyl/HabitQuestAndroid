@@ -2,8 +2,6 @@ package com.habitquest.ui.screen.profile
 
 import android.Manifest
 import android.os.Build
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,10 +43,6 @@ fun ProfileScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val themeController = LocalThemeController.current
-
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { granted -> viewModel.setNotificationsEnabled(granted) }
 
     val notificationsGranted = remember(state.notificationsEnabled) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -248,11 +242,7 @@ fun ProfileScreen(
                     label = "Notificaciones",
                     trailing = if (state.notificationsEnabled) "Activas" else "Inactivas",
                     trailingColor = if (state.notificationsEnabled) Emerald else TextDim,
-                    onClick = {
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                        }
-                    }
+                    onClick = {}
                 )
                 HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
                 SettingsRow(
@@ -260,6 +250,14 @@ fun ProfileScreen(
                     label = "Tema",
                     trailing = if (themeController.isDarkTheme) "Oscuro" else "Claro",
                     onClick = { themeController.setDarkTheme(!themeController.isDarkTheme) }
+                )
+                HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
+                SettingsRow(
+                    icon = "♪",
+                    label = "Sonido ambiental",
+                    trailing = if (state.ambientSoundEnabled) "ON" else "OFF",
+                    trailingColor = if (state.ambientSoundEnabled) Emerald else TextDim,
+                    onClick = { viewModel.setAmbientSoundEnabled(!state.ambientSoundEnabled) }
                 )
                 HorizontalDivider(color = com.habitquest.ui.theme.Divider, thickness = 1.dp)
                 SettingsRow(icon = "🗂️", label = "Categorías",   onClick = {})

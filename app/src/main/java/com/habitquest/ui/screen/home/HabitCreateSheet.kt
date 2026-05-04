@@ -33,6 +33,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.NotificationsOff
+import androidx.compose.material.icons.rounded.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -45,8 +48,10 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -81,6 +86,8 @@ import com.habitquest.ui.theme.TextPrimary
 import com.habitquest.ui.theme.TextSecondary
 import java.time.Instant
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
@@ -102,17 +109,19 @@ private enum class TaskDateQuickChoice(val label: String) {
 fun HabitCreateSheet(
     onDismiss: () -> Unit,
     onAddHabit: (name: String, icon: String, category: String, frequency: String) -> Unit,
-    onAddTask: (name: String, category: String, scheduledDate: String) -> Unit,
+    onAddTask: (name: String, category: String, scheduledDate: String, reminderAtMillis: Long?) -> Unit,
     editingHabit: Habit? = null,
     editingTask: Task? = null,
     onUpdateHabit: (id: Long, name: String, category: String, frequency: String) -> Unit = { _, _, _, _ -> },
-    onUpdateTask: (id: Long, name: String, category: String, scheduledDate: String) -> Unit = { _, _, _, _ -> }
+    onUpdateTask: (id: Long, name: String, category: String, scheduledDate: String, reminderAtMillis: Long?) -> Unit = { _, _, _, _, _ -> }
 ) {
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusRequester = remember { FocusRequester() }
     val scrollState = rememberScrollState()
     val datePickerZone = remember { ZoneOffset.UTC }
+    val reminderZone = remember { ZoneId.systemDefault() }
     val dateFormatter = remember { DateTimeFormatter.ISO_LOCAL_DATE }
+    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
     val displayDateFormatter = remember {
         DateTimeFormatter.ofLocalizedDate(FormatStyle.FULL).withLocale(Locale("es"))
     }
@@ -140,6 +149,13 @@ fun HabitCreateSheet(
     var selectedDays by remember(editingHabit?.id) { mutableStateOf(initialFrequency.selectedDays) }
     var timesPerWeek by remember(editingHabit?.id) { mutableStateOf(initialFrequency.timesPerWeek) }
     var scheduledDate by remember(editingTask?.id) { mutableStateOf(initialScheduledDate) }
+    var reminderTime by remember(editingTask?.id) {
+        mutableStateOf(
+            editingTask?.reminderAtMillis?.let {
+                Instant.ofEpochMilli(it).atZone(reminderZone).toLocalTime()
+            }
+        )
+    }
     var dateQuickChoice by remember(editingTask?.id) {
         mutableStateOf(
             when (initialScheduledDate) {
@@ -150,6 +166,7 @@ fun HabitCreateSheet(
         )
     }
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
     var attemptedSave by remember { mutableStateOf(false) }
 
     val isHabit = mode == SheetMode.HABIT
@@ -169,6 +186,7 @@ fun HabitCreateSheet(
         selectedDays = emptySet()
         timesPerWeek = 1
         scheduledDate = LocalDate.now()
+        reminderTime = null
         dateQuickChoice = TaskDateQuickChoice.TODAY
         attemptedSave = false
     }
@@ -192,10 +210,12 @@ fun HabitCreateSheet(
             }
             SheetMode.TASK -> {
                 val scheduledDateText = scheduledDate.format(dateFormatter)
+                val reminderAtMillis = reminderTime
+                    ?.let { scheduledDate.atTime(it).atZone(reminderZone).toInstant().toEpochMilli() }
                 if (editingTask != null) {
-                    onUpdateTask(editingTask.id, trimmedName, category, scheduledDateText)
+                    onUpdateTask(editingTask.id, trimmedName, category, scheduledDateText, reminderAtMillis)
                 } else {
-                    onAddTask(trimmedName, category, scheduledDateText)
+                    onAddTask(trimmedName, category, scheduledDateText, reminderAtMillis)
                 }
             }
         }
@@ -327,6 +347,11 @@ fun HabitCreateSheet(
                                 }
                             }
                         )
+                        TaskReminderSelector(
+                            timeText = reminderTime?.format(timeFormatter),
+                            onPickTime = { showTimePicker = true },
+                            onClearTime = { reminderTime = null }
+                        )
                     }
                 }
             }
@@ -365,6 +390,35 @@ fun HabitCreateSheet(
         ) {
             DatePicker(state = datePickerState)
         }
+    }
+
+    if (showTimePicker) {
+        val initialTime = reminderTime ?: LocalTime.now().plusHours(1).withMinute(0)
+        val timePickerState = rememberTimePickerState(
+            initialHour = initialTime.hour,
+            initialMinute = initialTime.minute,
+            is24Hour = true
+        )
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        reminderTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        showTimePicker = false
+                    }
+                ) {
+                    Text("Aceptar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancelar")
+                }
+            },
+            text = { TimePicker(state = timePickerState) },
+            containerColor = CardBackground
+        )
     }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
@@ -540,6 +594,67 @@ private fun TaskDateSelector(
                 style = AppTypography.bodyMedium,
                 color = TextSecondary
             )
+        }
+    }
+}
+
+@Composable
+private fun TaskReminderSelector(
+    timeText: String?,
+    onPickTime: () -> Unit,
+    onClearTime: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .clip(RoundedCornerShape(18.dp))
+                .background(if (timeText == null) CardBackground.copy(alpha = 0.72f) else Purple.copy(alpha = 0.10f))
+                .border(
+                    1.dp,
+                    if (timeText == null) Divider else Purple.copy(alpha = 0.34f),
+                    RoundedCornerShape(18.dp)
+                )
+                .clickable(onClick = onPickTime)
+                .padding(horizontal = 12.dp, vertical = 11.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Schedule,
+                contentDescription = null,
+                tint = if (timeText == null) TextDim else Purple,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = timeText?.let { "Recordarme a las $it" } ?: "Recordarme a las...",
+                style = AppTypography.labelSmall,
+                color = if (timeText == null) TextDim else Purple,
+                fontSize = 11.sp
+            )
+        }
+
+        if (timeText != null) {
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(CardBackground.copy(alpha = 0.72f))
+                    .border(1.dp, Divider, RoundedCornerShape(16.dp))
+                    .clickable(onClick = onClearTime),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.NotificationsOff,
+                    contentDescription = "Quitar recordatorio",
+                    tint = TextDim,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
         }
     }
 }

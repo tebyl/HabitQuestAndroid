@@ -7,5 +7,8 @@ data class Task(
     val isCompleted: Boolean = false,
     val createdAt: Long = System.currentTimeMillis(),
     val completedAt: Long? = null,
-    val scheduledDate: String? = null
+    val scheduledDate: String? = null,
+    val reminderAtMillis: Long? = null,
+    val reminderEnabled: Boolean = false,
+    val reminderWorkId: String? = null
 )

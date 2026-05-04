@@ -52,7 +52,9 @@ import com.habitquest.ui.theme.Red
 import com.habitquest.ui.theme.TextDim
 import com.habitquest.ui.theme.TextDimmer
 import com.habitquest.ui.theme.TextSecondary
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 private val taskBg = Color(0xFFFFFFFF)
@@ -74,6 +76,12 @@ fun TaskCard(
     }
     val today = remember { LocalDate.now() }
     val dateFormatter = remember { DateTimeFormatter.ofPattern("d MMM") }
+    val timeFormatter = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val reminderLabel = remember(task.reminderAtMillis) {
+        task.reminderAtMillis?.let {
+            Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).format(timeFormatter)
+        }
+    }
     val dateLabel = when {
         scheduledDate == null -> null
         scheduledDate.isAfter(today) -> "Proximamente · ${scheduledDate.format(dateFormatter)}"
@@ -132,7 +140,11 @@ fun TaskCard(
             )
             Spacer(Modifier.height(3.dp))
             Text(
-                text = listOfNotNull(categoryLabel(task.category), dateLabel).joinToString(" · "),
+                text = listOfNotNull(
+                    categoryLabel(task.category),
+                    dateLabel,
+                    reminderLabel?.let { "Recordatorio $it" }
+                ).joinToString(" · "),
                 style = AppTypography.labelSmall,
                 color = catColor.copy(alpha = if (task.isCompleted) 0.4f else 0.7f),
                 fontSize = 10.sp

@@ -28,11 +28,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.habitquest.audio.AmbientSoundPlayer
+import com.habitquest.data.preferences.AmbientSoundPreferences
 import com.habitquest.ui.screen.home.HomeScreen
 import com.habitquest.ui.screen.profile.ProfileScreen
 import com.habitquest.ui.screen.statistics.StatisticsScreen
 import com.habitquest.ui.screen.tasks.TasksCalendarScreen
 import com.habitquest.ui.theme.*
+import androidx.compose.ui.platform.LocalContext
 
 data class NavItem(
     val screen: Screen,
@@ -48,6 +52,12 @@ private val navItems = listOf(
 
 @Composable
 fun NavGraph() {
+    val context = LocalContext.current
+    val ambientSoundPreferences = remember(context) {
+        AmbientSoundPreferences(context.applicationContext)
+    }
+    val ambientSoundEnabled by ambientSoundPreferences.ambientSoundEnabled
+        .collectAsStateWithLifecycle(initialValue = false)
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -60,6 +70,8 @@ fun NavGraph() {
             .fillMaxSize()
             .background(Background)
     ) {
+        AmbientSoundPlayer(enabled = ambientSoundEnabled)
+
         NavHost(
             navController = navController,
             startDestination = Screen.Home.route,

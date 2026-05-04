@@ -6,6 +6,7 @@ import com.habitquest.data.local.dao.UserStatsDao
 import com.habitquest.data.local.entity.HabitEntity
 import com.habitquest.data.local.entity.TaskEntity
 import com.habitquest.data.local.entity.UserStatsEntity
+import com.habitquest.notification.TaskReminderScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -218,6 +219,87 @@ class HabitRepositoryImplTest {
     }
 
     @Test
+    fun addTask_withReminder_persistsReminderAndSchedulesWork() = runBlocking {
+        val taskDao = FakeTaskDao()
+        val scheduler = FakeTaskReminderScheduler()
+        val repository = HabitRepositoryImpl(
+            FakeHabitDao(),
+            FakeUserStatsDao(UserStatsEntity()),
+            taskDao,
+            scheduler
+        )
+        val reminderAt = System.currentTimeMillis() + 60_000L
+
+        val taskId = repository.addTask(
+            com.habitquest.domain.model.Task(
+                name = "Agenda",
+                category = "productividad",
+                scheduledDate = "2026-05-04",
+                reminderAtMillis = reminderAt,
+                reminderEnabled = true
+            )
+        )
+
+        val task = taskDao.getTaskById(taskId)
+        assertEquals(reminderAt, task?.reminderAtMillis)
+        assertEquals(true, task?.reminderEnabled)
+        assertEquals("work-$taskId", task?.reminderWorkId)
+        assertEquals(listOf(taskId), scheduler.scheduledTaskIds)
+    }
+
+    @Test
+    fun completeTask_cancelsReminder() = runBlocking {
+        val taskDao = FakeTaskDao()
+        val scheduler = FakeTaskReminderScheduler()
+        val taskId = taskDao.insertTask(
+            TaskEntity(
+                name = "Pay bill",
+                category = "vida_diaria",
+                reminderAtMillis = System.currentTimeMillis() + 60_000L,
+                reminderEnabled = true,
+                reminderWorkId = "work-1"
+            )
+        )
+        val repository = HabitRepositoryImpl(
+            FakeHabitDao(),
+            FakeUserStatsDao(UserStatsEntity(totalXP = 0)),
+            taskDao,
+            scheduler
+        )
+
+        repository.completeTask(taskId)
+
+        assertEquals(listOf(taskId), scheduler.cancelledTaskIds)
+        assertEquals(true, taskDao.getTaskById(taskId)?.isCompleted)
+    }
+
+    @Test
+    fun deleteTask_cancelsReminder() = runBlocking {
+        val taskDao = FakeTaskDao()
+        val scheduler = FakeTaskReminderScheduler()
+        val taskId = taskDao.insertTask(
+            TaskEntity(
+                name = "Delete me",
+                category = "vida_diaria",
+                reminderAtMillis = System.currentTimeMillis() + 60_000L,
+                reminderEnabled = true,
+                reminderWorkId = "work-1"
+            )
+        )
+        val repository = HabitRepositoryImpl(
+            FakeHabitDao(),
+            FakeUserStatsDao(UserStatsEntity()),
+            taskDao,
+            scheduler
+        )
+
+        repository.deleteTask(taskId)
+
+        assertEquals(listOf(taskId), scheduler.cancelledTaskIds)
+        assertNull(taskDao.getTaskById(taskId))
+    }
+
+    @Test
     fun addHabit_doesNotCreateTask() = runBlocking {
         val habitDao = FakeHabitDao()
         val taskDao = FakeTaskDao()
@@ -341,7 +423,31 @@ private class FakeTaskDao : TaskDao {
 
     override suspend fun getTaskById(taskId: Long): TaskEntity? = tasks[taskId]
 
+    override suspend fun getPendingReminderTasks(): List<TaskEntity> =
+        tasks.values.filter { it.reminderEnabled && it.reminderAtMillis != null && !it.isCompleted }
+
+    override suspend fun updateReminderWorkId(taskId: Long, workId: String?) {
+        tasks[taskId]?.let {
+            tasks[taskId] = it.copy(reminderWorkId = workId)
+        }
+        publish()
+    }
+
     private fun publish() {
         tasksFlow.value = tasks.values.toList()
+    }
+}
+
+private class FakeTaskReminderScheduler : TaskReminderScheduler {
+    val scheduledTaskIds = mutableListOf<Long>()
+    val cancelledTaskIds = mutableListOf<Long>()
+
+    override fun schedule(taskId: Long, taskName: String, reminderAtMillis: Long): String {
+        scheduledTaskIds += taskId
+        return "work-$taskId"
+    }
+
+    override fun cancel(taskId: Long, workId: String?) {
+        cancelledTaskIds += taskId
     }
 }

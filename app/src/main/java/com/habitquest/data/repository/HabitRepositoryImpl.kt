@@ -10,6 +10,7 @@ import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Task
 import com.habitquest.domain.model.UserStats
 import com.habitquest.domain.model.XpRules
+import com.habitquest.notification.TaskReminderScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.time.LocalDate
@@ -21,7 +22,8 @@ import javax.inject.Singleton
 class HabitRepositoryImpl @Inject constructor(
     private val habitDao: HabitDao,
     private val userStatsDao: UserStatsDao,
-    private val taskDao: TaskDao
+    private val taskDao: TaskDao,
+    private val taskReminderScheduler: TaskReminderScheduler? = null
 ) : HabitRepository {
 
     private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE
@@ -140,16 +142,22 @@ class HabitRepositoryImpl @Inject constructor(
         userStatsDao.updateUserAvatar(avatar)
     }
 
-    override suspend fun addTask(task: Task): Long =
-        taskDao.insertTask(task.toEntity())
+    override suspend fun addTask(task: Task): Long {
+        val taskId = taskDao.insertTask(task.toEntity())
+        scheduleTaskReminder(task.copy(id = taskId))
+        return taskId
+    }
 
     override suspend fun updateTask(task: Task) {
-        taskDao.updateTask(task.toEntity())
+        taskDao.getTaskById(task.id)?.let { cancelTaskReminder(it) }
+        taskDao.updateTask(task.toEntity().copy(reminderWorkId = null))
+        scheduleTaskReminder(task)
     }
 
     override suspend fun completeTask(taskId: Long) {
         val task = taskDao.getTaskById(taskId) ?: return
         if (task.isCompleted) return
+        cancelTaskReminder(task)
         taskDao.setCompletion(taskId, true, System.currentTimeMillis())
         val today = LocalDate.now().format(dateFormatter)
         val stats = userStatsDao.getUserStatsOnce()
@@ -168,7 +176,10 @@ class HabitRepositoryImpl @Inject constructor(
     }
 
     override suspend fun deleteTask(taskId: Long) {
-        taskDao.getTaskById(taskId)?.let { taskDao.deleteTask(it) }
+        taskDao.getTaskById(taskId)?.let {
+            cancelTaskReminder(it)
+            taskDao.deleteTask(it)
+        }
     }
 
     // ── Mappers ──────────────────────────────────────────────────────────────
@@ -194,13 +205,19 @@ class HabitRepositoryImpl @Inject constructor(
     private fun TaskEntity.toDomain() = Task(
         id = id, name = name, category = category,
         isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt,
-        scheduledDate = scheduledDate
+        scheduledDate = scheduledDate,
+        reminderAtMillis = reminderAtMillis,
+        reminderEnabled = reminderEnabled,
+        reminderWorkId = reminderWorkId
     )
 
     private fun Task.toEntity() = TaskEntity(
         id = id, name = name, category = category,
         isCompleted = isCompleted, createdAt = createdAt, completedAt = completedAt,
-        scheduledDate = scheduledDate
+        scheduledDate = scheduledDate,
+        reminderAtMillis = reminderAtMillis,
+        reminderEnabled = reminderEnabled,
+        reminderWorkId = reminderWorkId
     )
 
     private fun UserStatsEntity.toDomain() = UserStats(
@@ -212,5 +229,17 @@ class HabitRepositoryImpl @Inject constructor(
         userStatsDao.insertOrUpdate(
             stats.copy(totalXP = XpRules.applyDelta(stats.totalXP, -amount))
         )
+    }
+
+    private suspend fun scheduleTaskReminder(task: Task) {
+        val reminderAtMillis = task.reminderAtMillis ?: return
+        if (!task.reminderEnabled || task.isCompleted) return
+
+        val workId = taskReminderScheduler?.schedule(task.id, task.name, reminderAtMillis)
+        taskDao.updateReminderWorkId(task.id, workId)
+    }
+
+    private fun cancelTaskReminder(task: TaskEntity) {
+        taskReminderScheduler?.cancel(task.id, task.reminderWorkId)
     }
 }

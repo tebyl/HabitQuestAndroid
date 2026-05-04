@@ -184,19 +184,28 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    fun createTask(name: String, category: String, scheduledDate: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)) {
+    fun createTask(
+        name: String,
+        category: String,
+        scheduledDate: String = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
+        reminderAtMillis: Long? = null
+    ) {
         if (name.isBlank()) return
         viewModelScope.launch {
             repository.addTask(
                 com.habitquest.domain.model.Task(
-                    name = name.trim(), category = category, scheduledDate = scheduledDate
+                    name = name.trim(),
+                    category = category,
+                    scheduledDate = scheduledDate,
+                    reminderAtMillis = reminderAtMillis,
+                    reminderEnabled = reminderAtMillis != null
                 )
             )
             _uiState.update { it.copy(showQuickAdd = false) }
         }
     }
 
-    fun updateTask(taskId: Long, name: String, category: String, scheduledDate: String) {
+    fun updateTask(taskId: Long, name: String, category: String, scheduledDate: String, reminderAtMillis: Long?) {
         if (name.isBlank()) return
         val current = _uiState.value.tasks.find { it.id == taskId } ?: return
         viewModelScope.launch {
@@ -204,7 +213,10 @@ class HomeViewModel @Inject constructor(
                 current.copy(
                     name = name.trim(),
                     category = category,
-                    scheduledDate = scheduledDate
+                    scheduledDate = scheduledDate,
+                    reminderAtMillis = reminderAtMillis,
+                    reminderEnabled = reminderAtMillis != null,
+                    reminderWorkId = null
                 )
             )
             _uiState.update { it.copy(showQuickAdd = false) }

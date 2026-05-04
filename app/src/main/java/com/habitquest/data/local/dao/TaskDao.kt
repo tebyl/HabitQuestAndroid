@@ -24,4 +24,10 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE id = :taskId")
     suspend fun getTaskById(taskId: Long): TaskEntity?
+
+    @Query("SELECT * FROM tasks WHERE reminderEnabled = 1 AND reminderAtMillis IS NOT NULL AND isCompleted = 0")
+    suspend fun getPendingReminderTasks(): List<TaskEntity>
+
+    @Query("UPDATE tasks SET reminderWorkId = :workId WHERE id = :taskId")
+    suspend fun updateReminderWorkId(taskId: Long, workId: String?)
 }

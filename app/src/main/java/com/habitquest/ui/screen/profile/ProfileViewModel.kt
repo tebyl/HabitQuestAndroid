@@ -3,6 +3,7 @@ package com.habitquest.ui.screen.profile
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.habitquest.data.preferences.AmbientSoundPreferences
 import com.habitquest.data.repository.HabitRepository
 import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Level
@@ -59,7 +60,8 @@ data class ProfileAchievement(
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val repository: HabitRepository
+    private val repository: HabitRepository,
+    private val ambientSoundPreferences: AmbientSoundPreferences
 ) : ViewModel() {
 
     data class UiState(
@@ -78,6 +80,7 @@ class ProfileViewModel @Inject constructor(
         val editNameDraft: String = "",
         val showAvatarPicker: Boolean = false,
         val notificationsEnabled: Boolean = false,
+        val ambientSoundEnabled: Boolean = false,
         val isLoading: Boolean = true
     )
 
@@ -89,9 +92,15 @@ class ProfileViewModel @Inject constructor(
             combine(
                 repository.getHabits(),
                 repository.getUserStats(),
-                repository.getTasks()
-            ) { habits, stats, tasks -> Triple(habits, stats, tasks) }
-                .collect { (habits, stats, tasks) ->
+                repository.getTasks(),
+                ambientSoundPreferences.ambientSoundEnabled
+            ) { habits, stats, tasks, ambientSoundEnabled ->
+                ProfileData(habits, stats, tasks, ambientSoundEnabled)
+            }
+                .collect { data ->
+                    val habits = data.habits
+                    val stats = data.stats
+                    val tasks = data.tasks
                     val level = Levels.getCurrentLevel(stats.totalXP)
                     val maxStreak = habits.maxOfOrNull { it.streakCount } ?: 0
                     val tasksCompleted = tasks.count { it.isCompleted }
@@ -109,6 +118,7 @@ class ProfileViewModel @Inject constructor(
                             achievements     = buildAchievements(habits, stats.totalXP, level.level, tasksCompleted, maxStreak),
                             maxStreak        = maxStreak,
                             tasksCompleted   = tasksCompleted,
+                            ambientSoundEnabled = data.ambientSoundEnabled,
                             isLoading        = false
                         )
                     }
@@ -164,4 +174,16 @@ class ProfileViewModel @Inject constructor(
     fun setNotificationsEnabled(enabled: Boolean) {
         _uiState.update { it.copy(notificationsEnabled = enabled) }
     }
+
+    fun setAmbientSoundEnabled(enabled: Boolean) {
+        _uiState.update { it.copy(ambientSoundEnabled = enabled) }
+        viewModelScope.launch { ambientSoundPreferences.setAmbientSoundEnabled(enabled) }
+    }
 }
+
+private data class ProfileData(
+    val habits: List<Habit>,
+    val stats: com.habitquest.domain.model.UserStats,
+    val tasks: List<com.habitquest.domain.model.Task>,
+    val ambientSoundEnabled: Boolean
+)

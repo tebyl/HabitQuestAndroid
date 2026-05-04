@@ -34,6 +34,14 @@ object HabitQuestMigrations {
         }
     }
 
+    val MIGRATION_6_7 = object : Migration(6, 7) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.addColumnIfMissing("tasks", "reminderAtMillis", "INTEGER DEFAULT NULL")
+            db.addColumnIfMissing("tasks", "reminderEnabled", "INTEGER NOT NULL DEFAULT 0")
+            db.addColumnIfMissing("tasks", "reminderWorkId", "TEXT DEFAULT NULL")
+        }
+    }
+
     private fun ensureCurrentSchema(db: SupportSQLiteDatabase) {
         ensureHabitsTable(db)
         ensureUserStatsTable(db)
@@ -105,7 +113,10 @@ object HabitQuestMigrations {
                 `isCompleted` INTEGER NOT NULL,
                 `createdAt` INTEGER NOT NULL,
                 `completedAt` INTEGER,
-                `scheduledDate` TEXT
+                `scheduledDate` TEXT,
+                `reminderAtMillis` INTEGER,
+                `reminderEnabled` INTEGER NOT NULL,
+                `reminderWorkId` TEXT
             )
             """.trimIndent()
         )
@@ -114,6 +125,9 @@ object HabitQuestMigrations {
         db.addColumnIfMissing("tasks", "createdAt", "INTEGER NOT NULL DEFAULT 0")
         db.addColumnIfMissing("tasks", "completedAt", "INTEGER DEFAULT NULL")
         db.addColumnIfMissing("tasks", "scheduledDate", "TEXT DEFAULT NULL")
+        db.addColumnIfMissing("tasks", "reminderAtMillis", "INTEGER DEFAULT NULL")
+        db.addColumnIfMissing("tasks", "reminderEnabled", "INTEGER NOT NULL DEFAULT 0")
+        db.addColumnIfMissing("tasks", "reminderWorkId", "TEXT DEFAULT NULL")
         db.normalizeTasksTable()
     }
 
@@ -192,14 +206,22 @@ object HabitQuestMigrations {
                 `isCompleted` INTEGER NOT NULL,
                 `createdAt` INTEGER NOT NULL,
                 `completedAt` INTEGER,
-                `scheduledDate` TEXT
+                `scheduledDate` TEXT,
+                `reminderAtMillis` INTEGER,
+                `reminderEnabled` INTEGER NOT NULL,
+                `reminderWorkId` TEXT
             )
             """.trimIndent()
         )
         execSQL(
             """
-            INSERT INTO `tasks_new` (`id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`, `scheduledDate`)
-            SELECT `id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`, `scheduledDate`
+            INSERT INTO `tasks_new` (
+                `id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`,
+                `scheduledDate`, `reminderAtMillis`, `reminderEnabled`, `reminderWorkId`
+            )
+            SELECT
+                `id`, `name`, `category`, `isCompleted`, `createdAt`, `completedAt`,
+                `scheduledDate`, `reminderAtMillis`, `reminderEnabled`, `reminderWorkId`
             FROM `tasks`
             """.trimIndent()
         )
