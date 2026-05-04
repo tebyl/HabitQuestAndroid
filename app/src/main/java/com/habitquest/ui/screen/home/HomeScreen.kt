@@ -199,7 +199,7 @@ fun HomeScreen(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(
                             text = when {
-                                isComplete     -> "Vas increible hoy \u2728"
+                                isComplete     -> "Vas incre\u00edble hoy \u2728"
                                 completedCount == 0 -> "Un paso suave para empezar"
                                 else           -> "Tu dia va tomando forma"
                             },
@@ -208,7 +208,7 @@ fun HomeScreen(
                         )
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = "Pequenos pasos, grandes cambios",
+                            text = "Pequeños pasos, grandes cambios",
                             style = AppTypography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -611,7 +611,7 @@ private fun DeleteConfirmDialog(
             Text(title, style = AppTypography.titleMedium, color = MaterialTheme.colorScheme.onSurface)
         },
         text = {
-            Text("Esta accion no se puede deshacer.", style = AppTypography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("Esta acción no se puede deshacer.", style = AppTypography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
         },
         confirmButton = {
             TextButton(onClick = onConfirm) {

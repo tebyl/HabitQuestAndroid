@@ -124,21 +124,6 @@ fun HabitCard(
                 if (habit.completedToday) colors.secondary else outlineColor,
                 RoundedCornerShape(22.dp)
             )
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null
-            ) {
-                if (habit.completedToday) {
-                    onUncomplete?.invoke(habit.id)
-                } else {
-                    onComplete(habit.id)
-                    scope.launch {
-                        showXP = true
-                        delay(1200)
-                        showXP = false
-                    }
-                }
-            }
             .padding(horizontal = 16.dp, vertical = 14.dp)
     ) {
         Row(
@@ -210,13 +195,35 @@ fun HabitCard(
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(32.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .background(if (habit.completedToday) colors.secondary else colors.surface)
-                        .border(2.dp, if (habit.completedToday) colors.secondary else colors.outlineVariant, CircleShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null
+                        ) {
+                            if (habit.completedToday) {
+                                onUncomplete?.invoke(habit.id)
+                            } else {
+                                onComplete(habit.id)
+                                scope.launch {
+                                    showXP = true
+                                    delay(1200)
+                                    showXP = false
+                                }
+                            }
+                        }
                 ) {
-                    if (habit.completedToday) {
-                        Text("✓", color = MaterialTheme.colorScheme.onSecondary, fontSize = 14.sp)
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(if (habit.completedToday) colors.secondary else colors.surface)
+                            .border(2.dp, if (habit.completedToday) colors.secondary else colors.outlineVariant, CircleShape)
+                    ) {
+                        if (habit.completedToday) {
+                            Text("✓", color = MaterialTheme.colorScheme.onSecondary, fontSize = 14.sp)
+                        }
                     }
                 }
 

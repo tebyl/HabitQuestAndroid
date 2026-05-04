@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,14 +27,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.habitquest.ui.theme.Amber
 import com.habitquest.ui.theme.AppTypography
-import com.habitquest.ui.theme.CardBackground2
-import com.habitquest.ui.theme.Divider
-import com.habitquest.ui.theme.Purple
 import com.habitquest.ui.theme.Red
-import com.habitquest.ui.theme.TextDim
-import com.habitquest.ui.theme.TextMuted
 
 enum class HabitFrequency(val key: String, val label: String) {
     DAILY("daily", "Todos los días"),
@@ -68,11 +63,12 @@ fun FrequencySelector(
     onSelectTimesPerWeek: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = "¿Cuándo quieres hacerlo?",
             style = AppTypography.labelSmall,
-            color = TextMuted,
+            color = colors.onSurfaceVariant,
             fontSize = 10.sp
         )
 
@@ -80,7 +76,7 @@ fun FrequencySelector(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(22.dp))
-                .background(CardBackground2.copy(alpha = 0.84f))
+                .background(colors.surfaceVariant)
                 .padding(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
@@ -100,14 +96,14 @@ fun FrequencySelector(
                             scaleY = scale
                         }
                         .clip(RoundedCornerShape(18.dp))
-                        .background(if (isSelected) Purple.copy(alpha = 0.16f) else CardBackground2.copy(alpha = 0f))
+                        .background(if (isSelected) colors.primaryContainer else colors.surfaceVariant)
                         .clickable { onSelectFrequency(freq) }
                         .padding(horizontal = 8.dp, vertical = 11.dp)
                 ) {
                     Text(
                         text = freq.label,
                         style = AppTypography.labelLarge,
-                        color = if (isSelected) Purple else TextDim,
+                        color = if (isSelected) colors.primary else colors.onSurfaceVariant,
                         fontSize = 10.sp
                     )
                 }
@@ -140,10 +136,10 @@ fun FrequencySelector(
                                     scaleY = scale
                                 }
                                 .clip(CircleShape)
-                                .background(if (isOn) Amber.copy(alpha = 0.20f) else CardBackground2)
+                                .background(if (isOn) colors.primaryContainer else colors.surfaceVariant)
                                 .border(
                                     1.dp,
-                                    if (isOn) Amber.copy(alpha = 0.62f) else Divider,
+                                    if (isOn) colors.primary else colors.outlineVariant,
                                     CircleShape
                                 )
                                 .clickable { onToggleDay(key) }
@@ -151,7 +147,7 @@ fun FrequencySelector(
                             Text(
                                 text = label,
                                 style = AppTypography.labelSmall,
-                                color = if (isOn) Amber else TextDim,
+                                color = if (isOn) colors.primary else colors.onSurfaceVariant,
                                 fontSize = 11.sp
                             )
                         }
@@ -194,10 +190,10 @@ fun FrequencySelector(
                                     scaleY = scale
                                 }
                                 .clip(CircleShape)
-                                .background(if (isSelected) Amber.copy(alpha = 0.20f) else CardBackground2)
+                                .background(if (isSelected) colors.primaryContainer else colors.surfaceVariant)
                                 .border(
                                     1.dp,
-                                    if (isSelected) Amber.copy(alpha = 0.62f) else Divider,
+                                    if (isSelected) colors.primary else colors.outlineVariant,
                                     CircleShape
                                 )
                                 .clickable { onSelectTimesPerWeek(count) }
@@ -205,7 +201,7 @@ fun FrequencySelector(
                             Text(
                                 text = count.toString(),
                                 style = AppTypography.labelSmall,
-                                color = if (isSelected) Amber else TextDim,
+                                color = if (isSelected) colors.primary else colors.onSurfaceVariant,
                                 fontSize = 11.sp
                             )
                         }

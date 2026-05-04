@@ -2,9 +2,9 @@
 
 <div align="center">
 
-## A wellness companion for habits, routines, and gentle progress
+## Tu compañera de bienestar para hábitos, rutinas y progreso tranquilo
 
-HabitQuest is an Android MVP for tracking habits and tasks with a modern pastel wellness/lifestyle interface, emotional streaks, XP, levels, an evolution pet, and local offline persistence.
+HabitQuest es una app Android para registrar hábitos y tareas con una interfaz pastel de bienestar, streaks emocionales, XP, niveles, una mascota evolutiva y persistencia local sin conexión.
 
 <br />
 
@@ -12,7 +12,7 @@ HabitQuest is an Android MVP for tracking habits and tasks with a modern pastel 
 ![Kotlin](https://img.shields.io/badge/Kotlin-7F52FF?style=for-the-badge&logo=kotlin&logoColor=white)
 ![Jetpack Compose](https://img.shields.io/badge/Jetpack%20Compose-4285F4?style=for-the-badge&logo=jetpackcompose&logoColor=white)
 ![Material 3](https://img.shields.io/badge/Material%203-6750A4?style=for-the-badge&logo=materialdesign&logoColor=white)
-![Room](https://img.shields.io/badge/Room-Offline-0F9D58?style=for-the-badge)
+![Room v7](https://img.shields.io/badge/Room-v7%20Offline-0F9D58?style=for-the-badge)
 ![Status](https://img.shields.io/badge/Status-MVP-F59E0B?style=for-the-badge)
 
 </div>
@@ -21,121 +21,198 @@ HabitQuest is an Android MVP for tracking habits and tasks with a modern pastel 
 
 ## Overview
 
-HabitQuest turns everyday habits and tasks into a calm gamified loop: create activities, complete them, gain XP, maintain emotional streaks, level up, and review progress over time.
+HabitQuest convierte hábitos y tareas cotidianas en un loop gamificado y calmo: crea actividades, complótalas, acumula XP, mantén tu racha emocional, sube de nivel y revisa tu progreso con el tiempo.
 
-The app is built as a local-first Android experience with a pastel, modern, emotional wellness/lifestyle visual style. Data is persisted with Room, the UI is written in Jetpack Compose with Material 3, and the project uses Hilt-backed MVVM screens.
+La app es local-first: no requiere conexión, no usa Firebase. La UI está escrita en Jetpack Compose con Material 3, la persistencia es Room, y la arquitectura sigue el patrón MVVM con Hilt.
 
-## Screenshots
+---
 
-Place screenshots in `docs/screenshots/` using the following relative paths:
+## Pantallas
 
-| Home Wellness | Evolution Pet | Statistics |
+| Home (Hoy) | Perfil + Pet | Estadísticas |
 |---|---|---|
-| ![Home Wellness](docs/screenshots/home-wellness.png) | ![Evolution Pet](docs/screenshots/profile-pet.png) | ![Statistics](docs/screenshots/statistics.png) |
+| Vista diaria con hábitos y tareas pendientes | Avatar, nivel, mascota evolutiva y logros | Gráficos semanales y desglose por categoría |
+
+> Capturas en `docs/screenshots/` — próximamente.
+
+---
 
 ## Features
 
-- Habit and task creation with category selection, validation, and XP preview.
-- Complete and revert habits/tasks with XP updates.
-- Home keeps the daily view focused by showing only pending tasks scheduled for today, plus unscheduled pending tasks.
-- Monthly task calendar in a modern 7-column grid layout.
-- Calendar month navigation with previous/next controls.
-- Future pending tasks appear in the calendar by `scheduledDate`.
-- Completed tasks appear in the calendar by `completedAt`.
-- Selected calendar days show a lower detail panel with that day's tasks and their pending/completed state.
-- Category-based habit XP policy and fixed task XP.
-- Emotional streak system with soft milestones like Constancia, Ritmo, Flujo, and Habito real.
-- XP, levels, daily mission progress, and gentle completion feedback.
-- Evolution Pet System: a companion that evolves from Egg to Legend based on XP, level, streak, completed habits, and completed tasks.
-- Profile screen with avatar, level, rank, evolution pet, stats, and achievement badges.
-- Statistics screen with weekly habit/task charts and category breakdown; weekly task metrics use `completedAt`.
-- Pastel wellness UI with rounded cards, soft gradients, and a calm lifestyle feel.
-- Offline persistence with Room.
-- Room v6 includes nullable task scheduling dates and safe migrations for task completion/scheduling timestamps.
-- Bottom navigation across Home, Statistics, and Profile.
+### Loop principal
+- Creación de hábitos y tareas con selector de categoría, validación y preview de XP antes de guardar.
+- Completar y revertir hábitos/tareas con actualización inmediata de XP.
+- Home muestra solo las tareas del día (por `scheduledDate`) más las tareas sin fecha pendientes.
+- Feedback visual al completar: toast de XP, banner de logros desbloqueados, reacción de la mascota.
 
-## Evolution Pet System
+### Calendario de tareas
+- Vista mensual en grid de 7 columnas con navegación mes anterior/siguiente.
+- Tareas futuras visibles por `scheduledDate`; completadas por `completedAt`.
+- Panel detalle al seleccionar un día con estado pendiente/completado de cada tarea.
 
-The Profile screen includes a lightweight digital companion that represents user consistency. It evolves using existing progress data only: total XP, current level, streak, completed habits, and completed tasks.
+### Gamificación
+- **XP por categoría** — cada hábito otorga XP según su tipo (ver tabla más abajo).
+- **Bonus de racha** — +25 XP al completar un hábito con racha ≥ 3 días.
+- **Tareas** — 30 XP fijo por tarea completada.
+- **Niveles** — 5 niveles con nombre y color propios.
+- **Logros** — 5 achievements desbloqueables (Primer paso, Ritmo de 7 días, Rutina organizada, Nueva versión, Energía acumulada).
+- **Misión diaria** — progreso visual hacia completar los hábitos del día.
 
-Stages:
+### Sistema de streaks emocionales
+Milestones suaves: **Constancia → Ritmo → Flujo → Hábito real**, con tarjeta de recompensa al alcanzarlos.
 
-- **Egg**
-- **Baby**
-- **Explorer**
-- **Guardian**
-- **Legend**
+### Mascota evolutiva (Companion)
+La mascota refleja la constancia del usuario usando XP, nivel, racha y totales de hábitos/tareas completados. Reacciona en tiempo real al completar actividades.
+
+| Stage | Nombre | XP mínimo | Nivel mínimo | Racha mínima |
+|---|---|---|---|---|
+| 🌱 Semilla | EGG | 0 | 1 | 0 |
+| 🌷 Brote | BABY | 300 | 2 | 1 |
+| 🌸 Flor | EXPLORER | 800 | 3 | 3 |
+| ✨ Aura | GUARDIAN | 1 500 | 4 | 7 |
+| 👑 Esencia | LEGEND | 2 500 | 5 | 14 |
+
+### Perfil
+Avatar personalizable (6 opciones), nombre de usuario, nivel y rango, barra de XP, stats globales, mascota con estado emocional (IDLE / HAPPY / PROUD / TIRED) y tarjetas de logros con rareza.
+
+### Onboarding
+Flujo de bienvenida animado la primera vez que se abre la app, con opción de omitir. Estado persistido en DataStore.
+
+### Sonido ambiental
+Loop de audio opcional (18% de volumen), que se pausa automáticamente al ir a segundo plano. Toggle persistido por usuario en DataStore.
+
+### Recordatorios
+- Hábitos: recordatorio diario vía WorkManager.
+- Tareas: alarma exacta programada con `AlarmManager`, restaurada tras reinicio del dispositivo (`BootReceiver`).
+- Permiso `SCHEDULE_EXACT_ALARM` solicitado en runtime.
+
+### UI
+- Pastel wellness con tarjetas redondeadas, gradientes suaves y tipografía cálida.
+- Componentes premium reutilizables: `PremiumSurfaceCard`, `GlowIconBadge`, `NeonProgressBar`.
+- Soporte dark mode automático vía Material 3.
+- Animaciones con `AnimatedContent`, `AnimatedVisibility` y transiciones de Compose.
+
+---
+
+## XP y Niveles
+
+### XP por categoría de hábito
+
+| Categoría | XP base | + Bonus racha ≥ 3 |
+|---|---|---|
+| Productividad | 40 | +25 |
+| Salud física | 35 | +25 |
+| Desarrollo | 35 | +25 |
+| Salud mental | 30 | +25 |
+| Espiritualidad | 30 | +25 |
+| Autocuidado | 30 | +25 |
+| Familia / Corazón | 30 | +25 |
+| Vida diaria | 20 | +25 |
+| **Tarea (fijo)** | **30** | — |
+
+### Niveles
+
+| Nivel | Nombre | XP requerido |
+|---|---|---|
+| 1 | Inicio | 0 |
+| 2 | Aprendiz | 200 |
+| 3 | Constante | 500 |
+| 4 | Creadora de hábitos | 1 000 |
+| 5 | Inspiradora | 2 000 |
+
+---
 
 ## Stack
 
-- **Language:** Kotlin
-- **UI:** Jetpack Compose, Material 3
-- **Persistence:** Room
-- **Dependency injection:** Hilt
-- **Architecture style:** MVVM
-- **Async/state:** Kotlin Coroutines, Flow, StateFlow
-- **Build:** Gradle Kotlin DSL, Android Gradle Plugin
+| Capa | Tecnología |
+|---|---|
+| Lenguaje | Kotlin |
+| UI | Jetpack Compose + Material 3 |
+| Persistencia | Room 2.6 (DB v7) |
+| DI | Hilt 2.51 |
+| Arquitectura | MVVM |
+| Async / estado | Coroutines + Flow + StateFlow |
+| Preferencias | DataStore (Preferences) |
+| Recordatorios | WorkManager + AlarmManager |
+| Build | Gradle Kotlin DSL, AGP |
+| minSdk / targetSdk | 26 / 35 |
 
-## Architecture
+---
 
-The project keeps a compact MVVM structure suitable for an MVP:
+## Arquitectura
 
 ```text
 app/src/main/java/com/habitquest/
-+-- data/
-|   +-- local/          # Room database, DAOs, entities
-|   +-- repository/     # Repository contract and implementation
-+-- di/                 # Hilt modules
-+-- domain/model/       # Domain models and level/achievement helpers
-+-- notification/       # Reminder-related worker/helper classes
-+-- ui/
-    +-- component/      # Reusable Compose UI components
-    +-- navigation/     # Bottom navigation and routes
-    +-- screen/home/    # Home flow, create sheet, selectors
-    +-- screen/profile/ # Profile, rank, badges, XP progress
-    +-- screen/statistics/
-    +-- screen/tasks/   # TasksCalendar history screen
+├── audio/                    # AmbientSoundPlayer (MediaPlayer lifecycle-aware)
+├── data/
+│   ├── local/                # Room DB (v7), DAOs, entities, migrations 4→7
+│   ├── preferences/          # DataStore: ambient sound, onboarding, first run
+│   └── repository/           # HabitRepository interface + HabitRepositoryImpl
+├── di/                       # Hilt modules (Database, Repository, Notification)
+├── domain/
+│   ├── gamification/         # AchievementPolicy, PetEvolution, PetEvolutionPolicy,
+│   │                         #   PetReactionPolicy, PetReactionState
+│   └── model/                # Habit, Task, UserStats, Level/Levels, XpRules,
+│                             #   HabitTemplate, Achievement
+├── notification/             # AlarmTaskReminderScheduler, BootReceiver,
+│                             #   HabitReminderWorker, NotificationHelper,
+│                             #   TaskReminderReceiver, TaskReminderRestoreWorker
+└── ui/
+    ├── component/            # 16 componentes Compose reutilizables
+    ├── navigation/           # NavGraph, Screen (Home · Progress · Profile · TasksCalendar)
+    ├── screen/
+    │   ├── home/             # HomeScreen, HomeViewModel, HabitCreateSheet, QuickAddSheet,
+    │   │                     #   CategorySelector, FrequencySelector, HomeTaskFilters
+    │   ├── onboarding/       # OnboardingScreen, OnboardingPage
+    │   ├── profile/          # ProfileScreen, ProfileViewModel, ProfileHeaderCard,
+    │   │                     #   RankCard, AchievementBadgeCard, XpProgressCard
+    │   ├── progress/         # ProgressScreen, ProgressViewModel (logros + actividad semanal)
+    │   ├── statistics/       # StatisticsScreen, StatisticsViewModel, StatisticsCalculator,
+    │   │                     #   StatisticsCards
+    │   └── tasks/            # TasksCalendarScreen, TasksCalendarViewModel
+    └── theme/                # Color, Theme, Type
 ```
 
-Data flows from Room DAOs through `HabitRepository`, then into screen `ViewModel`s as `StateFlow` UI state. Compose screens collect that state and send user actions back to the ViewModel.
+El flujo de datos va de Room DAOs → `HabitRepository` → ViewModels como `StateFlow<UiState>`. Los Composables colectan ese estado con `collectAsStateWithLifecycle` y envían acciones de vuelta al ViewModel.
 
-## MVP Status
-
-HabitQuest is currently an MVP: the core loop works, the app builds successfully, and the main screens are implemented. It is ready to publish as an early project/demo repository, with the known limitations listed in the roadmap.
+---
 
 ## Build & Test
 
-From the project root:
-
 ```bash
+# Debug APK
 ./gradlew :app:assembleDebug
-```
 
-On Windows:
+# Release APK
+./gradlew :app:assembleRelease
 
-```powershell
-.\gradlew.bat :app:assembleDebug
-```
-
-Run existing unit tests:
-
-```bash
+# Unit tests
 ./gradlew :app:testDebugUnitTest
 ```
 
-On Windows:
+En Windows reemplaza `./gradlew` por `.\gradlew.bat`.
 
-```powershell
-.\gradlew.bat :app:testDebugUnitTest
-```
+### Cobertura de tests (17 archivos JVM)
 
-Current unit test coverage includes JVM tests for XP rules, level calculation, habit and task completion/revert behavior, statistics calculation, Home task filtering, and pet evolution.
+| Área | Archivos |
+|---|---|
+| Dominio | `XpRulesTest`, `LevelsTest`, `PetEvolutionTest`, `PetEvolutionPolicyTest`, `PetReactionPolicyTest`, `AchievementPolicyTest` |
+| Repository | `HabitRepositoryImplTest` |
+| Data / DB | `DatabaseSeedPolicyTest`, `HabitQuestMigrationsTest`, `AmbientSoundPreferencesTest` |
+| Notificaciones | `AlarmTaskReminderSchedulerTest`, `TaskReminderRestoreWorkerTest` |
+| UI / ViewModel | `HomeTaskFiltersTest`, `HomeViewModelPetReactionTest`, `HabitCreateSheetReminderTest`, `StatisticsCalculatorTest`, `TasksCalendarScreenTest` |
+| Assets | `PetImageResTest` |
+
+---
 
 ## Roadmap
 
-- Add Compose smoke/UI tests for navigation and core flows.
-- Add local backup/export support.
+- [ ] Tests de UI con Compose (smoke tests de navegación y flujos core).
+- [ ] Backup / export local.
+- [ ] Widget de pantalla de inicio.
 
-## Project Status
+---
 
-This repository is intended as a clean, presentable Android MVP for habit tracking with gamification. It does not use Firebase and does not require a network connection for the core experience.
+## Estado del proyecto
+
+MVP funcional: el core loop está implementado, la app compila y todas las pantallas principales están operativas. No requiere red ni Firebase para ninguna funcionalidad.

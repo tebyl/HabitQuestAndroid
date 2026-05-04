@@ -39,7 +39,7 @@ object NotificationHelper {
             CHANNEL_NAME,
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Notificaciones para recordar tus habitos y tareas"
+            description = "Notificaciones para recordar tus hábitos y tareas"
             enableVibration(true)
             setShowBadge(true)
         }
@@ -52,7 +52,7 @@ object NotificationHelper {
             .setSmallIcon(R.drawable.ic_notification_habitquest)
             .setLargeIcon(appLogo(context))
             .setColor(0xFFF59E0B.toInt())
-            .setContentTitle("Hora de tu habito")
+            .setContentTitle("Hora de tu hábito")
             .setContentText("No olvides completar: $habitName")
             .setStyle(NotificationCompat.BigTextStyle().bigText("No olvides completar: $habitName"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
@@ -70,7 +70,7 @@ object NotificationHelper {
             .setContentTitle("Tu tarea te espera")
             .setContentText(taskName)
             .setSubText("HabitQuest")
-            .setStyle(NotificationCompat.BigTextStyle().bigText("Un paso pequeno ahora: $taskName"))
+            .setStyle(NotificationCompat.BigTextStyle().bigText("Un paso pequeño ahora: $taskName"))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

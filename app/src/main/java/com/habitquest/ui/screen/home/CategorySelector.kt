@@ -28,11 +28,13 @@ import androidx.compose.material.icons.rounded.Spa
 import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.material.icons.rounded.TrackChanges
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
@@ -40,11 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.ui.theme.AppTypography
-import com.habitquest.ui.theme.CardBackground2
-import com.habitquest.ui.theme.Divider
-import com.habitquest.ui.theme.Purple
 import com.habitquest.ui.theme.Red
-import com.habitquest.ui.theme.TextDim
 import java.text.Normalizer
 
 private val CategoryFallbackColor = Color(0xFFD8C8FF)
@@ -104,6 +102,7 @@ fun CategorySelector(
     isError: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val colors = MaterialTheme.colorScheme
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         AppCategories.chunked(2).forEach { row ->
             Row(
@@ -125,23 +124,19 @@ fun CategorySelector(
                                 scaleX = scale.value
                                 scaleY = scale.value
                             }
-                            .clip(RoundedCornerShape(20.dp))
-                            .background(
-                                if (isSelected) {
-                                    if (cat.key.contains("familia") || cat.key.contains("autocuidado")) {
-                                        cat.color.copy(alpha = 0.24f)
-                                    } else {
-                                        Purple.copy(alpha = 0.12f)
-                                    }
-                                } else {
-                                    CardBackground2.copy(alpha = 0.78f)
-                                }
+                            .shadow(
+                                elevation = if (isSelected) 8.dp else 0.dp,
+                                shape = RoundedCornerShape(20.dp),
+                                ambientColor = cat.color,
+                                spotColor = cat.color
                             )
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(if (isSelected) colors.primaryContainer else colors.surfaceVariant)
                             .border(
                                 width = if (isSelected) 2.dp else 1.dp,
                                 color = when {
-                                    isSelected -> cat.color.copy(alpha = 0.70f)
-                                    else -> Divider
+                                    isSelected -> cat.color
+                                    else -> colors.outlineVariant
                                 },
                                 shape = RoundedCornerShape(20.dp)
                             )
@@ -151,14 +146,14 @@ fun CategorySelector(
                         Icon(
                             imageVector = cat.icon,
                             contentDescription = cat.label,
-                            tint = if (isSelected) cat.color else TextDim,
+                            tint = if (isSelected) cat.color else colors.onSurfaceVariant,
                             modifier = Modifier.size(28.dp)
                         )
                         Spacer(Modifier.height(8.dp))
                         Text(
                             text = cat.label,
                             style = AppTypography.labelSmall,
-                            color = if (isSelected) Purple else TextDim,
+                            color = if (isSelected) colors.onSurface else colors.onSurfaceVariant,
                             fontSize = 11.sp,
                             textAlign = TextAlign.Center
                         )

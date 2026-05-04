@@ -12,6 +12,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.SideEffect
 import androidx.core.content.ContextCompat
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.habitquest.data.preferences.OnboardingPreferences
 import com.habitquest.ui.navigation.NavGraph
@@ -31,6 +33,7 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     private var notificationPermissionGranted by mutableStateOf(false)
     private var exactAlarmPermissionGranted by mutableStateOf(true)
+    private var isOnboardingLoading = true
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { granted ->
@@ -38,7 +41,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+        splashScreen.setKeepOnScreenCondition { isOnboardingLoading }
         notificationPermissionGranted = hasNotificationPermission()
         exactAlarmPermissionGranted = canScheduleExactAlarms()
         enableEdgeToEdge()
@@ -52,6 +57,8 @@ class MainActivity : ComponentActivity() {
                 val hasSeenOnboarding by onboardingPreferences.hasSeenOnboarding
                     .collectAsStateWithLifecycle(initialValue = null)
 
+                SideEffect { isOnboardingLoading = hasSeenOnboarding == null }
+
                 when (hasSeenOnboarding) {
                     true -> NavGraph(
                         notificationPermissionGranted = notificationPermissionGranted,
@@ -59,13 +66,14 @@ class MainActivity : ComponentActivity() {
                         onRequestNotificationPermission = ::requestNotificationPermissionIfNeeded,
                         onRequestExactAlarmPermission = ::openExactAlarmSettings
                     )
-                    false, null -> OnboardingScreen(
+                    false -> OnboardingScreen(
                         onFinish = {
                             scope.launch {
                                 onboardingPreferences.setHasSeenOnboarding(true)
                             }
                         }
                     )
+                    null -> Unit
                 }
             }
         }
