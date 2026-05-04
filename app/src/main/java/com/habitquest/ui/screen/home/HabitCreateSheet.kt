@@ -1,5 +1,7 @@
 package com.habitquest.ui.screen.home
 
+import android.content.pm.ApplicationInfo
+import android.util.Log
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.SizeTransform
@@ -65,12 +67,15 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.habitquest.domain.model.Habit
 import com.habitquest.domain.model.Task
+import com.habitquest.notification.NotificationHelper
 import com.habitquest.ui.theme.Amber
+import com.habitquest.ui.theme.Emerald
 import com.habitquest.ui.theme.AppTypography
 import com.habitquest.ui.theme.Background
 import com.habitquest.ui.theme.CardBackground
@@ -112,9 +117,17 @@ fun HabitCreateSheet(
     onAddTask: (name: String, category: String, scheduledDate: String, reminderAtMillis: Long?) -> Unit,
     editingHabit: Habit? = null,
     editingTask: Task? = null,
+    notificationPermissionGranted: Boolean = true,
+    exactAlarmPermissionGranted: Boolean = true,
+    onRequestNotificationPermission: () -> Unit = {},
+    onRequestExactAlarmPermission: () -> Unit = {},
     onUpdateHabit: (id: Long, name: String, category: String, frequency: String) -> Unit = { _, _, _, _ -> },
     onUpdateTask: (id: Long, name: String, category: String, scheduledDate: String, reminderAtMillis: Long?) -> Unit = { _, _, _, _, _ -> }
 ) {
+    val context = LocalContext.current
+    val debugBuild = remember(context) {
+        (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0
+    }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val focusRequester = remember { FocusRequester() }
     val scrollState = rememberScrollState()
@@ -167,7 +180,11 @@ fun HabitCreateSheet(
     }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var debugReminderAtMillis by remember(editingTask?.id) { mutableStateOf<Long?>(null) }
+    var showNotificationPermissionHint by remember { mutableStateOf(false) }
     var attemptedSave by remember { mutableStateOf(false) }
+    var pendingTimePickerAfterPermission by remember { mutableStateOf(false) }
+    var pendingDebugReminderAfterPermission by remember { mutableStateOf(false) }
 
     val isHabit = mode == SheetMode.HABIT
     val nameError = attemptedSave && name.isBlank()
@@ -187,8 +204,11 @@ fun HabitCreateSheet(
         timesPerWeek = 1
         scheduledDate = LocalDate.now()
         reminderTime = null
+        debugReminderAtMillis = null
         dateQuickChoice = TaskDateQuickChoice.TODAY
         attemptedSave = false
+        pendingTimePickerAfterPermission = false
+        pendingDebugReminderAfterPermission = false
     }
 
     fun save() {
@@ -209,9 +229,35 @@ fun HabitCreateSheet(
                 }
             }
             SheetMode.TASK -> {
-                val scheduledDateText = scheduledDate.format(dateFormatter)
-                val reminderAtMillis = reminderTime
-                    ?.let { scheduledDate.atTime(it).atZone(reminderZone).toInstant().toEpochMilli() }
+                val requestedReminderAtMillis = debugReminderAtMillis
+                    ?: reminderTime?.let {
+                        calculateTaskReminderAtMillis(
+                            scheduledDate = scheduledDate,
+                            selectedTime = it,
+                            nowMillis = System.currentTimeMillis(),
+                            zone = reminderZone
+                        )
+                    }
+                val resolvedScheduledDate = if (debugReminderAtMillis == null && requestedReminderAtMillis != null) {
+                    Instant.ofEpochMilli(requestedReminderAtMillis).atZone(reminderZone).toLocalDate()
+                } else {
+                    scheduledDate
+                }
+                val scheduledDateText = resolvedScheduledDate.format(dateFormatter)
+                val reminderAtMillis = requestedReminderAtMillis.takeIf { notificationPermissionGranted }
+                if (requestedReminderAtMillis != null && !notificationPermissionGranted) {
+                    showNotificationPermissionHint = true
+                    Log.d(TAG, "Task reminder disabled because notification permission is missing")
+                }
+                if (reminderAtMillis != null && !exactAlarmPermissionGranted) {
+                    Log.w(TAG, "Task reminder saved without exact alarm permission; Android may delay delivery")
+                }
+                Log.d(
+                    TAG,
+                    "Saving task scheduledDate=$scheduledDateText requestedReminderAtMillis=$requestedReminderAtMillis " +
+                        "finalReminderAtMillis=$reminderAtMillis permissionGranted=$notificationPermissionGranted " +
+                        "exactAlarmAllowed=$exactAlarmPermissionGranted"
+                )
                 if (editingTask != null) {
                     onUpdateTask(editingTask.id, trimmedName, category, scheduledDateText, reminderAtMillis)
                 } else {
@@ -348,9 +394,49 @@ fun HabitCreateSheet(
                             }
                         )
                         TaskReminderSelector(
-                            timeText = reminderTime?.format(timeFormatter),
-                            onPickTime = { showTimePicker = true },
-                            onClearTime = { reminderTime = null }
+                            timeText = debugReminderAtMillis?.let { "Probar en 10s" }
+                                ?: reminderTime?.format(timeFormatter),
+                            permissionGranted = notificationPermissionGranted,
+                            exactAlarmAllowed = exactAlarmPermissionGranted,
+                            showPermissionHint = showNotificationPermissionHint,
+                            showDebugTest = debugBuild,
+                            onTestNow = if (debugBuild && notificationPermissionGranted) {
+                                {
+                                    Log.d(TAG, "Instant notification test fired")
+                                    NotificationHelper.showTaskReminder(context, DEBUG_TEST_NOTIF_ID, "Prueba de notificación HabitQuest")
+                                }
+                            } else null,
+                            onPickTime = {
+                                if (!notificationPermissionGranted) {
+                                    showNotificationPermissionHint = true
+                                    pendingTimePickerAfterPermission = true
+                                    onRequestNotificationPermission()
+                                } else {
+                                    showNotificationPermissionHint = false
+                                    pendingTimePickerAfterPermission = false
+                                    showTimePicker = true
+                                }
+                            },
+                            onPickDebugReminder = {
+                                if (!notificationPermissionGranted) {
+                                    showNotificationPermissionHint = true
+                                    pendingDebugReminderAfterPermission = true
+                                    onRequestNotificationPermission()
+                                } else {
+                                    debugReminderAtMillis = System.currentTimeMillis() + 10_000L
+                                    reminderTime = null
+                                    showNotificationPermissionHint = false
+                                    if (!exactAlarmPermissionGranted) {
+                                        Log.w(TAG, "Debug reminder selected without exact alarm permission; fallback may be delayed")
+                                    }
+                                    Log.d(TAG, "Selected debug task reminder at $debugReminderAtMillis")
+                                }
+                            },
+                            onRequestExactAlarmPermission = onRequestExactAlarmPermission,
+                            onClearTime = {
+                                reminderTime = null
+                                debugReminderAtMillis = null
+                            }
                         )
                     }
                 }
@@ -404,7 +490,24 @@ fun HabitCreateSheet(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        reminderTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        val selectedTime = LocalTime.of(timePickerState.hour, timePickerState.minute)
+                        val nowMillis = System.currentTimeMillis()
+                        val reminderAtMillis = calculateTaskReminderAtMillis(
+                            scheduledDate = scheduledDate,
+                            selectedTime = selectedTime,
+                            nowMillis = nowMillis,
+                            zone = reminderZone
+                        )
+                        val adjustedDateTime = Instant.ofEpochMilli(reminderAtMillis).atZone(reminderZone)
+                        scheduledDate = adjustedDateTime.toLocalDate()
+                        dateQuickChoice = quickChoiceForDate(scheduledDate)
+                        reminderTime = adjustedDateTime.toLocalTime()
+                        debugReminderAtMillis = null
+                        Log.d(
+                            TAG,
+                            "Selected task reminder time requested=$selectedTime scheduledDate=$scheduledDate " +
+                                "reminderAtMillis=$reminderAtMillis now=$nowMillis"
+                        )
                         showTimePicker = false
                     }
                 ) {
@@ -422,6 +525,55 @@ fun HabitCreateSheet(
     }
 
     LaunchedEffect(Unit) { focusRequester.requestFocus() }
+
+    LaunchedEffect(notificationPermissionGranted) {
+        if (notificationPermissionGranted) {
+            if (pendingTimePickerAfterPermission) {
+                pendingTimePickerAfterPermission = false
+                showNotificationPermissionHint = false
+                showTimePicker = true
+            }
+            if (pendingDebugReminderAfterPermission) {
+                pendingDebugReminderAfterPermission = false
+                showNotificationPermissionHint = false
+                debugReminderAtMillis = System.currentTimeMillis() + 10_000L
+            }
+        }
+    }
+}
+
+private const val TAG = "HabitCreateSheet"
+private const val DEBUG_TEST_NOTIF_ID = 99_999L
+internal const val TASK_REMINDER_MIN_SAFE_DELAY_MILLIS = 60_000L
+
+internal fun calculateTaskReminderAtMillis(
+    scheduledDate: LocalDate,
+    selectedTime: LocalTime,
+    nowMillis: Long,
+    zone: ZoneId
+): Long {
+    val now = Instant.ofEpochMilli(nowMillis).atZone(zone)
+    var candidate = scheduledDate.atTime(selectedTime).atZone(zone)
+    if (scheduledDate == now.toLocalDate() && !candidate.isAfter(now)) {
+        candidate = candidate.plusDays(1)
+    }
+
+    val minSafeMillis = nowMillis + TASK_REMINDER_MIN_SAFE_DELAY_MILLIS
+    val candidateMillis = candidate.toInstant().toEpochMilli()
+    return if (candidateMillis in (nowMillis + 1) until minSafeMillis) {
+        minSafeMillis
+    } else {
+        candidateMillis
+    }
+}
+
+private fun quickChoiceForDate(date: LocalDate): TaskDateQuickChoice {
+    val today = LocalDate.now()
+    return when (date) {
+        today -> TaskDateQuickChoice.TODAY
+        today.plusDays(1) -> TaskDateQuickChoice.TOMORROW
+        else -> TaskDateQuickChoice.CUSTOM
+    }
 }
 
 @Composable
@@ -601,14 +753,22 @@ private fun TaskDateSelector(
 @Composable
 private fun TaskReminderSelector(
     timeText: String?,
+    permissionGranted: Boolean,
+    exactAlarmAllowed: Boolean,
+    showPermissionHint: Boolean,
+    showDebugTest: Boolean,
+    onTestNow: (() -> Unit)? = null,
     onPickTime: () -> Unit,
+    onPickDebugReminder: () -> Unit,
+    onRequestExactAlarmPermission: () -> Unit,
     onClearTime: () -> Unit
 ) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
         Row(
             modifier = Modifier
                 .weight(1f)
@@ -654,6 +814,70 @@ private fun TaskReminderSelector(
                     tint = TextDim,
                     modifier = Modifier.size(18.dp)
                 )
+            }
+        }
+    }
+        if (showDebugTest) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(18.dp))
+                    .background(Amber.copy(alpha = 0.12f))
+                    .border(1.dp, Amber.copy(alpha = 0.34f), RoundedCornerShape(18.dp))
+                    .clickable(onClick = onPickDebugReminder)
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Probar recordatorio en 10 segundos",
+                    style = AppTypography.labelSmall,
+                    color = Amber,
+                    fontSize = 11.sp
+                )
+            }
+            if (onTestNow != null) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(Emerald.copy(alpha = 0.12f))
+                        .border(1.dp, Emerald.copy(alpha = 0.34f), RoundedCornerShape(18.dp))
+                        .clickable(onClick = onTestNow)
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Probar notificación AHORA (sin delay)",
+                        style = AppTypography.labelSmall,
+                        color = Emerald,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+        }
+        if (!permissionGranted && showPermissionHint) {
+            Text(
+                text = "Activa las notificaciones para usar recordatorios. La tarea se puede crear igual.",
+                style = AppTypography.labelSmall,
+                color = Red,
+                fontSize = 10.sp
+            )
+        }
+        if (permissionGranted && !exactAlarmAllowed) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(
+                    text = "Android no permite alarmas exactas para HabitQuest. Sin ese permiso, los recordatorios pueden llegar con retrasos.",
+                    style = AppTypography.labelSmall,
+                    color = Amber,
+                    fontSize = 10.sp
+                )
+                OutlinedButton(
+                    onClick = onRequestExactAlarmPermission,
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text("Permitir alarmas exactas")
+                }
             }
         }
     }

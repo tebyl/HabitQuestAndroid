@@ -54,7 +54,11 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel(),
-    onOpenTasksCalendar: () -> Unit = {}
+    onOpenTasksCalendar: () -> Unit = {},
+    notificationPermissionGranted: Boolean = true,
+    exactAlarmPermissionGranted: Boolean = true,
+    onRequestNotificationPermission: () -> Unit = {},
+    onRequestExactAlarmPermission: () -> Unit = {}
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     var editingHabit by remember { mutableStateOf<Habit?>(null) }
@@ -546,6 +550,10 @@ fun HomeScreen(
             onAddTask  = viewModel::createTask,
             editingHabit = editingHabit,
             editingTask = editingTask,
+            notificationPermissionGranted = notificationPermissionGranted,
+            exactAlarmPermissionGranted = exactAlarmPermissionGranted,
+            onRequestNotificationPermission = onRequestNotificationPermission,
+            onRequestExactAlarmPermission = onRequestExactAlarmPermission,
             onUpdateHabit = { id, name, category, frequency ->
                 viewModel.updateHabit(id, name, category, frequency)
                 editingHabit = null

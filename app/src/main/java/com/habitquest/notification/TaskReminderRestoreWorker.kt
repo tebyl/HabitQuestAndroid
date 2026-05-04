@@ -9,6 +9,7 @@ import androidx.work.WorkerParameters
 import com.habitquest.data.local.dao.TaskDao
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import android.util.Log
 
 @HiltWorker
 class TaskReminderRestoreWorker @AssistedInject constructor(
@@ -22,7 +23,15 @@ class TaskReminderRestoreWorker @AssistedInject constructor(
         val now = System.currentTimeMillis()
         taskDao.getPendingReminderTasks().forEach { task ->
             val reminderAtMillis = task.reminderAtMillis ?: return@forEach
-            if (reminderAtMillis <= now) return@forEach
+            if (!shouldRestoreTaskReminder(now, reminderAtMillis)) {
+                Log.d(
+                    TAG,
+                    "Skipping overdue restore taskId=${task.id} reminderAtMillis=$reminderAtMillis now=$now"
+                )
+                taskDao.updateReminderWorkId(task.id, null)
+                return@forEach
+            }
+            Log.d(TAG, "Restoring future task reminder taskId=${task.id} reminderAtMillis=$reminderAtMillis now=$now")
             val workId = taskReminderScheduler.schedule(task.id, task.name, reminderAtMillis)
             taskDao.updateReminderWorkId(task.id, workId)
         }
@@ -30,7 +39,11 @@ class TaskReminderRestoreWorker @AssistedInject constructor(
     }
 
     companion object {
+        private const val TAG = "TaskReminderRestoreWorker"
         private const val WORK_NAME = "task_reminder_restore"
+
+        internal fun shouldRestoreTaskReminder(now: Long, reminderAtMillis: Long): Boolean =
+            reminderAtMillis > now
 
         fun enqueue(context: Context) {
             WorkManager.getInstance(context).enqueueUniqueWork(

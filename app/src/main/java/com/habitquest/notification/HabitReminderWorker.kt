@@ -1,6 +1,8 @@
 package com.habitquest.notification
 
 import android.content.Context
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -22,14 +24,19 @@ class HabitReminderWorker @AssistedInject constructor(
         val habits = repository.getHabits().first()
         val pending = habits.filter { !it.completedToday && it.reminderEnabled }
 
-        val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE)
-                as android.app.NotificationManager
+        val notificationsAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            applicationContext.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) ==
+                PackageManager.PERMISSION_GRANTED
 
-        pending.forEachIndexed { index, habit ->
-            manager.notify(
-                habit.id.toInt(),
-                NotificationHelper.buildHabitReminder(applicationContext, habit.name)
-            )
+        if (notificationsAllowed) {
+            val manager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE)
+                    as android.app.NotificationManager
+            pending.forEachIndexed { _, habit ->
+                manager.notify(
+                    habit.id.toInt(),
+                    NotificationHelper.buildHabitReminder(applicationContext, habit.name)
+                )
+            }
         }
 
         return Result.success()

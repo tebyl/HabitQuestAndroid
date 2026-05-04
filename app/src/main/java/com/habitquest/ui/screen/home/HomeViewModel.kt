@@ -1,5 +1,6 @@
 package com.habitquest.ui.screen.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.habitquest.data.repository.HabitRepository
@@ -191,6 +192,7 @@ class HomeViewModel @Inject constructor(
         reminderAtMillis: Long? = null
     ) {
         if (name.isBlank()) return
+        Log.d(TAG, "createTask() name=${name.trim()} category=$category scheduledDate=$scheduledDate reminderAtMillis=$reminderAtMillis")
         viewModelScope.launch {
             repository.addTask(
                 com.habitquest.domain.model.Task(
@@ -208,6 +210,7 @@ class HomeViewModel @Inject constructor(
     fun updateTask(taskId: Long, name: String, category: String, scheduledDate: String, reminderAtMillis: Long?) {
         if (name.isBlank()) return
         val current = _uiState.value.tasks.find { it.id == taskId } ?: return
+        Log.d(TAG, "updateTask() taskId=$taskId reminderAtMillis=$reminderAtMillis")
         viewModelScope.launch {
             repository.updateTask(
                 current.copy(
@@ -227,5 +230,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             repository.deleteTask(taskId)
         }
+    }
+
+    private companion object {
+        const val TAG = "HomeViewModel"
     }
 }

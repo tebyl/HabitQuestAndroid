@@ -51,7 +51,12 @@ private val navItems = listOf(
 )
 
 @Composable
-fun NavGraph() {
+fun NavGraph(
+    notificationPermissionGranted: Boolean = true,
+    exactAlarmPermissionGranted: Boolean = true,
+    onRequestNotificationPermission: () -> Unit = {},
+    onRequestExactAlarmPermission: () -> Unit = {}
+) {
     val context = LocalContext.current
     val ambientSoundPreferences = remember(context) {
         AmbientSoundPreferences(context.applicationContext)
@@ -79,7 +84,11 @@ fun NavGraph() {
         ) {
             composable(Screen.Home.route) {
                 HomeScreen(
-                    onOpenTasksCalendar = { navController.navigate(Screen.TasksCalendar.route) }
+                    onOpenTasksCalendar = { navController.navigate(Screen.TasksCalendar.route) },
+                    notificationPermissionGranted = notificationPermissionGranted,
+                    exactAlarmPermissionGranted = exactAlarmPermissionGranted,
+                    onRequestNotificationPermission = onRequestNotificationPermission,
+                    onRequestExactAlarmPermission = onRequestExactAlarmPermission
                 )
             }
             composable(Screen.Progress.route) { StatisticsScreen() }

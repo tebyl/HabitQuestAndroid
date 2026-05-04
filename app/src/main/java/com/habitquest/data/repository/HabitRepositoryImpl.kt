@@ -1,5 +1,6 @@
 package com.habitquest.data.repository
 
+import android.util.Log
 import com.habitquest.data.local.dao.HabitDao
 import com.habitquest.data.local.dao.TaskDao
 import com.habitquest.data.local.dao.UserStatsDao
@@ -44,6 +45,7 @@ class HabitRepositoryImpl @Inject constructor(
         const val XP_PER_TASK            = 30
         const val STREAK_BONUS           = 25
         const val STREAK_BONUS_THRESHOLD = 3
+        private const val TAG = "HabitRepositoryImpl"
 
         fun xpForCategory(category: String) = CATEGORY_HABIT_XP[category] ?: 30
     }
@@ -144,11 +146,13 @@ class HabitRepositoryImpl @Inject constructor(
 
     override suspend fun addTask(task: Task): Long {
         val taskId = taskDao.insertTask(task.toEntity())
+        log("addTask() inserted taskId=$taskId reminderEnabled=${task.reminderEnabled} reminderAtMillis=${task.reminderAtMillis}")
         scheduleTaskReminder(task.copy(id = taskId))
         return taskId
     }
 
     override suspend fun updateTask(task: Task) {
+        log("updateTask() taskId=${task.id} reminderEnabled=${task.reminderEnabled} reminderAtMillis=${task.reminderAtMillis}")
         taskDao.getTaskById(task.id)?.let { cancelTaskReminder(it) }
         taskDao.updateTask(task.toEntity().copy(reminderWorkId = null))
         scheduleTaskReminder(task)
@@ -157,6 +161,7 @@ class HabitRepositoryImpl @Inject constructor(
     override suspend fun completeTask(taskId: Long) {
         val task = taskDao.getTaskById(taskId) ?: return
         if (task.isCompleted) return
+        log("completeTask() cancelling reminder taskId=$taskId workId=${task.reminderWorkId}")
         cancelTaskReminder(task)
         taskDao.setCompletion(taskId, true, System.currentTimeMillis())
         val today = LocalDate.now().format(dateFormatter)
@@ -177,6 +182,7 @@ class HabitRepositoryImpl @Inject constructor(
 
     override suspend fun deleteTask(taskId: Long) {
         taskDao.getTaskById(taskId)?.let {
+            log("deleteTask() cancelling reminder taskId=$taskId workId=${it.reminderWorkId}")
             cancelTaskReminder(it)
             taskDao.deleteTask(it)
         }
@@ -235,11 +241,17 @@ class HabitRepositoryImpl @Inject constructor(
         val reminderAtMillis = task.reminderAtMillis ?: return
         if (!task.reminderEnabled || task.isCompleted) return
 
+        log("scheduleTaskReminder() calling scheduler taskId=${task.id} reminderAtMillis=$reminderAtMillis")
         val workId = taskReminderScheduler?.schedule(task.id, task.name, reminderAtMillis)
+        log("scheduleTaskReminder() scheduler returned workId=$workId taskId=${task.id}")
         taskDao.updateReminderWorkId(task.id, workId)
     }
 
     private fun cancelTaskReminder(task: TaskEntity) {
         taskReminderScheduler?.cancel(task.id, task.reminderWorkId)
+    }
+
+    private fun log(message: String) {
+        runCatching { Log.d(TAG, message) }
     }
 }
